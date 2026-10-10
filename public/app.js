@@ -1,8 +1,26 @@
+/* ==================== SEKMELER ==================== */
+const tabs      = document.querySelectorAll(".tab");
+const pageVideo = document.getElementById("pageVideo");
+const pageConv  = document.getElementById("pageConverter");
+
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    tabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    const target = tab.dataset.tab;
+    pageVideo.hidden = target !== "video";
+    pageConv.hidden  = target !== "converter";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
+
+/* ==================== VİDEO ÜRETİCİ ==================== */
 const FPS = 30;
 const W = 1280;
 const H = 720;
-const MAX_SURE = 30;        // saniye
-const TIMEOUT_MS = 45000;   // üretim için üst limit
+const MAX_SURE = 30;
+const TIMEOUT_MS = 45000;
 
 const codeInput    = document.getElementById("codeInput");
 const generateBtn  = document.getElementById("generateBtn");
@@ -11,6 +29,7 @@ const previewVideo = document.getElementById("previewVideo");
 const resultSec    = document.getElementById("resultSection");
 const downloadBtn  = document.getElementById("downloadBtn");
 const chatLog      = document.getElementById("chatLog");
+const welcomeMsg   = document.getElementById("welcomeMsg");
 const progressBar  = document.getElementById("progressBar");
 const progressFill = document.getElementById("progressFill");
 
@@ -18,19 +37,23 @@ canvas.width  = W;
 canvas.height = H;
 const ctx = canvas.getContext("2d");
 
-/* ---------------- Yardımcılar ---------------- */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
 );
+
+/* === ESKİ MESAJLARI TEMİZLE (yeni!) === */
+function clearVideoChat() {
+  chatLog.querySelectorAll(".bot-msg").forEach(el => {
+    if (el !== welcomeMsg) el.remove();
+  });
+}
 
 function addBotMessage(html, type = "") {
   const div = document.createElement("div");
   div.className = "bot-msg";
   div.innerHTML = `<div class="avatar">🤖</div><div class="bubble ${type}">${html}</div>`;
   chatLog.appendChild(div);
-  chatLog.scrollTop = chatLog.scrollHeight;
   return div;
 }
 
@@ -38,7 +61,6 @@ function updateMessage(el, html, type = "") {
   const b = el.querySelector(".bubble");
   b.innerHTML = html;
   if (type) b.className = `bubble ${type}`;
-  chatLog.scrollTop = chatLog.scrollHeight;
 }
 
 /* ---------------- Örnekler ---------------- */
@@ -82,7 +104,7 @@ document.querySelectorAll("[data-ex]").forEach(btn => {
   });
 });
 
-/* ---------------- Kod derleyici ---------------- */
+/* ---------------- Derleyici ---------------- */
 function parseCode(raw) {
   let duration = 5;
   const m = raw.match(/@(\d+(?:[.,]\d+)?)s?\b/);
@@ -136,7 +158,6 @@ function compile(code) {
   );
 }
 
-/* ---------------- Boş sahne ---------------- */
 function drawIdle() {
   ctx.fillStyle = "#0a0c12";
   ctx.fillRect(0, 0, W, H);
@@ -148,7 +169,7 @@ function drawIdle() {
 }
 drawIdle();
 
-/* ---------------- Kayıt (düzeltilmiş) ---------------- */
+/* ---------------- Üretim ---------------- */
 async function uret() {
   const raw = codeInput.value.trim();
   if (!raw) return addBotMessage("⚠️ Kod boş. Bir şeyler yaz.", "err");
@@ -164,7 +185,9 @@ async function uret() {
     return addBotMessage(`❌ <b>Kod hatası:</b><br><code>${escapeHtml(e.message)}</code>`, "err");
   }
 
-  // UI kilit
+  /* === YENİ ÜRETİM BAŞLARKEN ESKİ LOGLARI TEMİZLE === */
+  clearVideoChat();
+
   generateBtn.disabled = true;
   previewVideo.hidden   = true;
   resultSec.hidden      = true;
@@ -173,22 +196,18 @@ async function uret() {
   progressFill.style.width = "0%";
   generateBtn.textContent = "⚡ Üretiliyor...";
 
-  /* 1. Adım: kod aldık */
   const m1 = addBotMessage('<span class="spinner"></span> 📥 Kodunu aldım, <b>analiz ediyorum...</b>');
   await sleep(350);
   updateMessage(m1, "📥 Kod analiz edildi ✓");
 
-  /* 2. Adım: sahne */
   const m2 = addBotMessage('<span class="spinner"></span> 🎨 <b>Sahne kuruluyor...</b>');
   await sleep(300);
   updateMessage(m2, "🎨 Sahne hazır ✓");
 
-  /* 3. Adım: animasyon + kayıt */
   const m3 = addBotMessage('<span class="spinner"></span> 🏃 <b>Animasyon oynatılıyor...</b><div class="mini-bar"><div></div></div>');
   const miniFill = m3.querySelector(".mini-bar > div");
 
-  /* Kayıt hazırlığı */
-  const stream = canvas.captureStream(0);           // manuel kontrol
+  const stream = canvas.captureStream(0);
   const track  = stream.getVideoTracks()[0];
 
   const mime = ["video/webm;codecs=vp8", "video/webm;codecs=vp9", "video/webm"]
@@ -196,7 +215,7 @@ async function uret() {
 
   const rec = new MediaRecorder(stream, {
     mimeType: mime,
-    videoBitsPerSecond: 2_500_000                    // düşürdük → hızlı
+    videoBitsPerSecond: 2_500_000
   });
 
   const chunks = [];
@@ -205,12 +224,12 @@ async function uret() {
   const blobPromise = new Promise((resolve, reject) => {
     const killer = setTimeout(() => {
       try { rec.state !== "inactive" && rec.stop(); } catch (_) {}
-      reject(new Error("Video üretimi zaman aşımına uğradı (45 sn). Kodu basitleştir veya süreyi kısalt."));
+      reject(new Error("Video üretimi zaman aşımına uğradı (45 sn)."));
     }, TIMEOUT_MS);
 
     rec.onstop = () => {
       clearTimeout(killer);
-      if (!chunks.length) return reject(new Error("Kayıt boş döndü. Tarayıcıyı yenile ve tekrar dene."));
+      if (!chunks.length) return reject(new Error("Kayıt boş döndü. Tarayıcıyı yenile."));
       resolve(new Blob(chunks, { type: "video/webm" }));
     };
     rec.onerror = e => {
@@ -230,7 +249,6 @@ async function uret() {
     const elapsed = performance.now() - startTime;
     const t       = Math.min(1, elapsed / durationMs);
 
-    // temiz kare
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
 
@@ -245,55 +263,50 @@ async function uret() {
       return;
     }
 
-    // Kareyi stream'e gönder
     if (track.requestFrame) track.requestFrame();
 
-    // UI güncelle
     const pct = Math.round(t * 100);
     progressFill.style.width = pct + "%";
     miniFill.style.width     = pct + "%";
     const kalan = Math.max(0, Math.ceil(duration - elapsed / 1000));
     updateMessage(m3,
       `🏃 <b>Animasyon oynatılıyor...</b> %${pct} <small>(~${kalan} sn)</small>
-       <div class="mini-bar"><div style="width:${pct}%"></div></div>`,
+       <div class="mini-bar"><div style="width:${pct}%"></div></div>`
     );
     generateBtn.textContent = `⚡ Üretiliyor... %${pct}`;
 
     if (elapsed < durationMs) {
       requestAnimationFrame(tick);
     } else {
-      // Son kareyi garantile + küçük bekleme
       setTimeout(() => {
         try { rec.state !== "inactive" && rec.stop(); } catch (_) {}
       }, 250);
-    }
+    if }
   }
 
   requestAnimationFrame(tick);
 
-  /* 4. Adım: kayıt bitmesini bekle */
   let blob;
   try {
     blob = await blobPromise;
   } catch (e) {
-    updateMessage(m3, `❌ ${escapeHtml(e.message)}`, "err");
+    updateMessage(m3 (, `❌ ${escapeHtml(e.message)}`, "err");
     generateBtn.disabled = false;
-    generateBtn.textContent = "⚡ Videoyu Oluştur";
+    generateBtn.textContent = "⚡ Videoyu Oluşturf";
     progressBar.hidden = true;
     return;
   }
 
   updateMessage(m3, "🏃 Animasyon tamamlandı ✓");
 
-  /* 5. Adım: işleme */
-  const m4 = addBotMessage('<span class="spinner"></span> 💾 <b>Video işleniyor...</b>');
+  const m4 = add)BotMessage('<span class="spinner"></span> 💾 <b>Video işleniyor...</b>');
   await sleep(250);
 
-  const url = URL.createObjectURL(blob);
+ set  const url = URL.createObjectURL(blob);
   previewVideo.src     = url;
   previewVideo.hidden  = false;
   canvas.style.display = "none";
-  progressBar.hidden   = true;
+  progressFileBar.hidden   = true;
   downloadBtn.href     = url;
   downloadBtn.download = `oscodevideo-${Date.now()}.webm`;
   resultSec.hidden     = false;
