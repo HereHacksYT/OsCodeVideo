@@ -8,11 +8,12 @@
 </head>
 <body>
   <header>
-    <></div class="logo">🎬 OsCode<span>Video</spandiv>
-    <span class="tagline">Koddan video üret</span>
+    <div class="logo">🎬 OsCode<span>Video</span></div>
+    <span class="tagline">koddan video üret</span>
   </header>
 
   <main>
+    <!-- Sahne -->
     <section class="stage">
       <canvas id="renderCanvas"></canvas>
       <video id="previewVideo" controls playsinline hidden></video>
@@ -21,45 +22,46 @@
       </div>
     </section>
 
-    <section class="chat">
-      <div class="chat-log" id="chatLog">
-        <div class="bot-msg">
-          <div class="avatar">🤖</div>
-          <div class="bubble">
-            Merhaba! Kodunu yaz, sana video yapayım. <br />
-            <small>
-              <code>t</code> değişkeni 0'dan 1'e gider.<br />
-              Fonksiyonlar: <code>daire(x,y,r,renk)</code>,
-              <code>dikdortgen(x,y,w,h,renk)</code>,
-              <code>yazi(metin,x,y,boyut,renk)</code>,
-              <code>cizgi(x1,y1,x2,y2,renk,kalinlik)</code>,
-              <code>arkaplan(renk)</code><br />
-              Süre: en üste <code>@5s</code> yaz (varsayılan 5 sn, max 30 sn).
-            </small>
-          </div>
-        </div>
-      </div>
-
-      <div class="input-area">
-        <textarea id="codeInput" spellcheck="false">@5s
-// Top soldan sağa gidiyor
-const x = 100 + t * 900;
-daire(x, 360, 50, "#ff6b35");</textarea>
-
-        <div class="actions">
-          <div class="examples">
-            <span>Örnekler:</span>
-            <button data-ex="0">Top</button>
-            <button data-ex="1">Zıplayan Top</button>
-            <button data-ex="2">Yazı</button>
-            <button data-ex="3">Renk Geçişi</button>
-            <button data-ex="4">Dönen Kare</button>
-          </div>
-          <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
+    <!-- Sohbet -->
+    <section class="chat" id="chatLog">
+      <div class="bot-msg">
+        <div class="avatar">🤖</div>
+        <div class="bubble">
+          Merhaba! Kodunu yaz, sana video yapayım. <br />
+          <small>
+            <code>t</code> değişkeni 0'dan 1'e gider (animasyon için).<br />
+            Fonksiyonlar: <code>daire(x,y,r,renk)</code>,
+            <code>dikdortgen(x,y,w,h,renk)</code>,
+            <code>yazi(metin,x,y,boyut,renk)</code>,
+            <code>cizgi(x1,y1,x2,y2,renk,kalinlik)</code>,
+            <code>arkaplan(renk)</code><br />
+            Süre: en üste <code>@5s</code> yaz (varsayılan 5 sn, max 30 sn).
+          </small>
         </div>
       </div>
     </section>
 
+    <!-- Input alanı -->
+    <section class="input-area">
+      <textarea id="codeInput" spellcheck="false">@5s
+// Top soldan sağa gidiyor
+const x = 100 + t * 900;
+daire(x, 360, 50, "#ff6b35");</textarea>
+
+      <div class="actions">
+        <div class="examples">
+          <span>Örnekler:</span>
+          <button data-ex="0">Top</button>
+          <button data-ex="1">Zıplayan Top</button>
+          <button data-ex="2">Yazı</button>
+          <button data-ex="3">Renk Geçişi</button>
+          <button data-ex="4">Dönen Kare</button>
+        </div>
+        <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
+      </div>
+    </section>
+
+    <!-- Sonuç -->
     <section class="result" id="resultSection" hidden>
       <a id="downloadBtn" class="primary download" download>⬇️ Videoyu İndir</a>
     </section>
