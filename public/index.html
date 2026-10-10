@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <header>
@@ -12,14 +12,13 @@
     <span class="tagline">koddan video üret</span>
   </header>
 
-  <!-- Sekmeler -->
   <nav class="tabs">
     <button class="tab active" id="tabVideo" data-tab="video">🎬 Video</button>
     <button class="tab" id="tabConverter" data-tab="converter">🔄 Dönüştürücü</button>
   </nav>
 
   <main>
-    <!-- ============ SAYFA: VİDEO ÜRETİCİ ============ -->
+    <!-- ============ VİDEO ============ -->
     <section class="page" id="pageVideo">
       <section class="stage">
         <canvas id="renderCanvas"></canvas>
@@ -71,7 +70,7 @@ daire(x, 360, 50, "#ff6b35");</textarea>
       </section>
     </section>
 
-    <!-- ============ SAYFA: DÖNÜŞTÜRÜCÜ ============ -->
+    <!-- ============ DÖNÜŞTÜRÜCÜ ============ -->
     <section class="page" id="pageConverter" hidden>
       <section class="stage converter-stage" id="dropZone">
         <div class="drop-inner">
@@ -88,7 +87,7 @@ daire(x, 360, 50, "#ff6b35");</textarea>
           <div class="bubble">
             WebM dosyanı yükle, MP4'e dönüştüreyim. <br />
             <small>
-              Dosya max <b>100 MB</b> olmalı. <br />
+              Dosya max <b>100 MB</b>. <br />
               İlk dönüşümde ffmpeg motoru (~25 MB) indirilir, biraz sürer.<br />
               Sonraki dönüşümler hızlıdır.
             </small>
@@ -113,7 +112,6 @@ daire(x, 360, 50, "#ff6b35");</textarea>
     </section>
   </main>
 
-  <script src="app.js"></script>
-  <script type="module" src="converter.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
