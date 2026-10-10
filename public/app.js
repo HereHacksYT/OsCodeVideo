@@ -1,6 +1,8 @@
 const FPS = 30;
 const W = 1280;
 const H = 720;
+const MAX_SURE = 30;        // saniye
+const TIMEOUT_MS = 45000;   // üretim için üst limit
 
 const codeInput    = document.getElementById("codeInput");
 const generateBtn  = document.getElementById("generateBtn");
@@ -8,12 +10,38 @@ const canvas       = document.getElementById("renderCanvas");
 const previewVideo = document.getElementById("previewVideo");
 const resultSec    = document.getElementById("resultSection");
 const downloadBtn  = document.getElementById("downloadBtn");
-const botBubble    = document.querySelector("#botMsg .bubble");
+const chatLog      = document.getElementById("chatLog");
+const progressBar  = document.getElementById("progressBar");
+const progressFill = document.getElementById("progressFill");
 
 canvas.width  = W;
 canvas.height = H;
+const ctx = canvas.getContext("2d");
 
-/* ---------- Örnekler ---------- */
+/* ---------------- Yardımcılar ---------------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+);
+
+function addBotMessage(html, type = "") {
+  const div = document.createElement("div");
+  div.className = "bot-msg";
+  div.innerHTML = `<div class="avatar">🤖</div><div class="bubble ${type}">${html}</div>`;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return div;
+}
+
+function updateMessage(el, html, type = "") {
+  const b = el.querySelector(".bubble");
+  b.innerHTML = html;
+  if (type) b.className = `bubble ${type}`;
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+/* ---------------- Örnekler ---------------- */
 const ORNEKLER = [
   { kod: `@5s
 // Top soldan sağa gidiyor
@@ -54,15 +82,7 @@ document.querySelectorAll("[data-ex]").forEach(btn => {
   });
 });
 
-/* ---------- Yardımcılar ---------- */
-function botSay(html) { botBubble.innerHTML = html; }
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
-  );
-}
-
+/* ---------------- Kod derleyici ---------------- */
 function parseCode(raw) {
   let duration = 5;
   const m = raw.match(/@(\d+(?:[.,]\d+)?)s?\b/);
@@ -73,11 +93,11 @@ function parseCode(raw) {
   return { duration, code: raw.trim() };
 }
 
-function makeHelpers(ctx) {
+function makeHelpers() {
   return {
     arkaplan(renk = "#000") {
       ctx.fillStyle = renk;
-      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.fillRect(0, 0, W, H);
     },
     daire(x, y, r, renk = "#fff") {
       ctx.fillStyle = renk;
@@ -116,9 +136,8 @@ function compile(code) {
   );
 }
 
-/* ---------- Başlangıç çizimi ---------- */
-(function drawIdle() {
-  const ctx = canvas.getContext("2d");
+/* ---------------- Boş sahne ---------------- */
+function drawIdle() {
   ctx.fillStyle = "#0a0c12";
   ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = "#232838";
@@ -126,92 +145,161 @@ function compile(code) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("🎬 Önizleme", W / 2, H / 2);
-})();
+}
+drawIdle();
 
-/* ---------- Video üret ---------- */
+/* ---------------- Kayıt (düzeltilmiş) ---------------- */
 async function uret() {
   const raw = codeInput.value.trim();
-  if (!raw) return botSay("⚠️ Kod boş. Bir şeyler yaz.");
+  if (!raw) return addBotMessage("⚠️ Kod boş. Bir şeyler yaz.", "err");
 
   const { duration, code } = parseCode(raw);
-  if (duration < 1 || duration > 30) {
-    return botSay("⚠️ Süre 1–30 saniye arasında olmalı.");
+  if (duration < 1 || duration > MAX_SURE) {
+    return addBotMessage(`⚠️ Süre 1–${MAX_SURE} saniye arasında olmalı.`, "err");
   }
 
   let userFn;
   try { userFn = compile(code); }
   catch (e) {
-    return botSay(`❌ <b>Kod hatası:</b><br><code>${escapeHtml(e.message)}</code>`);
+    return addBotMessage(`❌ <b>Kod hatası:</b><br><code>${escapeHtml(e.message)}</code>`, "err");
   }
 
-  const totalFrames = Math.round(duration * FPS);
-  const tahmini     = Math.ceil(duration + 1);
-
+  // UI kilit
   generateBtn.disabled = true;
-  previewVideo.hidden  = true;
-  resultSec.hidden     = true;
-  canvas.style.display = "block";
-  botSay(`⚡ <b>Videoyu oluşturuyorum...</b><br><small>Tahmini süre: ~${tahmini} sn</small>`);
+  previewVideo.hidden   = true;
+  resultSec.hidden      = true;
+  canvas.style.display  = "block";
+  progressBar.hidden    = false;
+  progressFill.style.width = "0%";
+  generateBtn.textContent = "⚡ Üretiliyor...";
 
-  const ctx     = canvas.getContext("2d");
-  const helpers = makeHelpers(ctx);
+  /* 1. Adım: kod aldık */
+  const m1 = addBotMessage('<span class="spinner"></span> 📥 Kodunu aldım, <b>analiz ediyorum...</b>');
+  await sleep(350);
+  updateMessage(m1, "📥 Kod analiz edildi ✓");
 
-  /* Kayıt */
-  const stream = canvas.captureStream(FPS);
-  const mime = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"]
-    .find(t => MediaRecorder.isTypeSupported(t)) || "video/webm";
+  /* 2. Adım: sahne */
+  const m2 = addBotMessage('<span class="spinner"></span> 🎨 <b>Sahne kuruluyor...</b>');
+  await sleep(300);
+  updateMessage(m2, "🎨 Sahne hazır ✓");
 
-  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
-  const chunks = [];
-  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
-  const stopped = new Promise(res => {
-    rec.onstop = () => res(new Blob(chunks, { type: "video/webm" }));
+  /* 3. Adım: animasyon + kayıt */
+  const m3 = addBotMessage('<span class="spinner"></span> 🏃 <b>Animasyon oynatılıyor...</b><div class="mini-bar"><div></div></div>');
+  const miniFill = m3.querySelector(".mini-bar > div");
+
+  /* Kayıt hazırlığı */
+  const stream = canvas.captureStream(0);           // manuel kontrol
+  const track  = stream.getVideoTracks()[0];
+
+  const mime = ["video/webm;codecs=vp8", "video/webm;codecs=vp9", "video/webm"]
+    .find(t => MediaRecorder.isTypeSupported(t));
+
+  const rec = new MediaRecorder(stream, {
+    mimeType: mime,
+    videoBitsPerSecond: 2_500_000                    // düşürdük → hızlı
   });
+
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+
+  const blobPromise = new Promise((resolve, reject) => {
+    const killer = setTimeout(() => {
+      try { rec.state !== "inactive" && rec.stop(); } catch (_) {}
+      reject(new Error("Video üretimi zaman aşımına uğradı (45 sn). Kodu basitleştir veya süreyi kısalt."));
+    }, TIMEOUT_MS);
+
+    rec.onstop = () => {
+      clearTimeout(killer);
+      if (!chunks.length) return reject(new Error("Kayıt boş döndü. Tarayıcıyı yenile ve tekrar dene."));
+      resolve(new Blob(chunks, { type: "video/webm" }));
+    };
+    rec.onerror = e => {
+      clearTimeout(killer);
+      reject(new Error("Kayıt hatası: " + (e.error?.message || "bilinmeyen")));
+    };
+  });
+
   rec.start();
 
-  try {
-    const t0 = performance.now();
-    const frameMs = 1000 / FPS;
+  const startTime  = performance.now();
+  const durationMs = duration * 1000;
+  const helpers    = makeHelpers();
+  let frameNo      = 0;
 
-    for (let i = 0; i < totalFrames; i++) {
-      const target = t0 + i * frameMs;
-      const now = performance.now();
-      if (now < target) await new Promise(r => setTimeout(r, target - now));
+  function tick() {
+    const elapsed = performance.now() - startTime;
+    const t       = Math.min(1, elapsed / durationMs);
 
-      const t = totalFrames > 1 ? i / (totalFrames - 1) : 0;
+    // temiz kare
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
 
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, W, H);
-
-      userFn(ctx, t, i, duration, W, H, helpers);
-
-      const gecen = Math.round((performance.now() - t0) / 1000);
-      const kalan = Math.max(0, tahmini - gecen);
-      const pct   = Math.round(((i + 1) / totalFrames) * 100);
-      generateBtn.textContent = `⚡ Oluşturuluyor... %${pct} (~${kalan} sn)`;
+    try {
+      userFn(ctx, t, frameNo++, duration, W, H, helpers);
+    } catch (e) {
+      try { rec.state !== "inactive" && rec.stop(); } catch (_) {}
+      updateMessage(m3, `❌ <b>Çalışma hatası:</b><br><code>${escapeHtml(e.message)}</code>`, "err");
+      generateBtn.disabled = false;
+      generateBtn.textContent = "⚡ Videoyu Oluştur";
+      progressBar.hidden = true;
+      return;
     }
 
-    await new Promise(r => setTimeout(r, 150)); // son kare garantisi
-  } catch (e) {
-    rec.stop();
-    generateBtn.disabled = false;
-    generateBtn.textContent = "⚡ Videoyu Oluştur";
-    return botSay(`❌ <b>Çalışma hatası:</b><br><code>${escapeHtml(e.message)}</code>`);
+    // Kareyi stream'e gönder
+    if (track.requestFrame) track.requestFrame();
+
+    // UI güncelle
+    const pct = Math.round(t * 100);
+    progressFill.style.width = pct + "%";
+    miniFill.style.width     = pct + "%";
+    const kalan = Math.max(0, Math.ceil(duration - elapsed / 1000));
+    updateMessage(m3,
+      `🏃 <b>Animasyon oynatılıyor...</b> %${pct} <small>(~${kalan} sn)</small>
+       <div class="mini-bar"><div style="width:${pct}%"></div></div>`,
+    );
+    generateBtn.textContent = `⚡ Üretiliyor... %${pct}`;
+
+    if (elapsed < durationMs) {
+      requestAnimationFrame(tick);
+    } else {
+      // Son kareyi garantile + küçük bekleme
+      setTimeout(() => {
+        try { rec.state !== "inactive" && rec.stop(); } catch (_) {}
+      }, 250);
+    }
   }
 
-  rec.stop();
-  const blob = await stopped;
+  requestAnimationFrame(tick);
 
-  /* Sonuç */
+  /* 4. Adım: kayıt bitmesini bekle */
+  let blob;
+  try {
+    blob = await blobPromise;
+  } catch (e) {
+    updateMessage(m3, `❌ ${escapeHtml(e.message)}`, "err");
+    generateBtn.disabled = false;
+    generateBtn.textContent = "⚡ Videoyu Oluştur";
+    progressBar.hidden = true;
+    return;
+  }
+
+  updateMessage(m3, "🏃 Animasyon tamamlandı ✓");
+
+  /* 5. Adım: işleme */
+  const m4 = addBotMessage('<span class="spinner"></span> 💾 <b>Video işleniyor...</b>');
+  await sleep(250);
+
   const url = URL.createObjectURL(blob);
-  previewVideo.src   = url;
-  previewVideo.hidden = false;
+  previewVideo.src     = url;
+  previewVideo.hidden  = false;
   canvas.style.display = "none";
+  progressBar.hidden   = true;
   downloadBtn.href     = url;
   downloadBtn.download = `oscodevideo-${Date.now()}.webm`;
-  resultSec.hidden = false;
+  resultSec.hidden     = false;
 
-  botSay(`✅ <b>Video hazır!</b><br><small>${duration} sn • ${(blob.size / 1024 / 1024).toFixed(2)} MB</small>`);
+  updateMessage(m4, `✅ <b>Video hazır!</b> <small>(${duration} sn • ${(blob.size / 1024 / 1024).toFixed(2)} MB)</small>`, "ok");
+  addBotMessage('İndirmek için alttaki <b>⬇️ Videoyu İndir</b> butonuna bas.', "ok");
 
   generateBtn.disabled = false;
   generateBtn.textContent = "⚡ Videoyu Oluştur";
