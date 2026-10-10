@@ -8,32 +8,35 @@
 </head>
 <body>
   <header>
-    <div class="logo">🎬 OsCode<span>Video</span></div>
-    <span class="tagline">koddan video üret</span>
+    <></div class="logo">🎬 OsCode<span>Video</spandiv>
+    <span class="tagline">Koddan video üret</span>
   </header>
 
   <main>
-    <!-- Sahne -->
     <section class="stage">
       <canvas id="renderCanvas"></canvas>
       <video id="previewVideo" controls playsinline hidden></video>
+      <div class="progress-bar" id="progressBar" hidden>
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
     </section>
 
-    <!-- Sohbet -->
     <section class="chat">
-      <div class="bot-msg" id="botMsg">
-        <div class="avatar">🤖</div>
-        <div class="bubble">
-          Merhaba! Kodunu yaz, sana video yapayım. <br />
-          <small>
-            <code>t</code> değişkeni 0'dan 1'e gider (animasyon için).<br />
-            Fonksiyonlar: <code>daire(x,y,r,renk)</code>,
-            <code>dikdortgen(x,y,w,h,renk)</code>,
-            <code>yazi(metin,x,y,boyut,renk)</code>,
-            <code>cizgi(x1,y1,x2,y2,renk,kalinlik)</code>,
-            <code>arkaplan(renk)</code><br />
-            Süre: en üste <code>@5s</code> yaz (varsayılan 5 sn).
-          </small>
+      <div class="chat-log" id="chatLog">
+        <div class="bot-msg">
+          <div class="avatar">🤖</div>
+          <div class="bubble">
+            Merhaba! Kodunu yaz, sana video yapayım. <br />
+            <small>
+              <code>t</code> değişkeni 0'dan 1'e gider.<br />
+              Fonksiyonlar: <code>daire(x,y,r,renk)</code>,
+              <code>dikdortgen(x,y,w,h,renk)</code>,
+              <code>yazi(metin,x,y,boyut,renk)</code>,
+              <code>cizgi(x1,y1,x2,y2,renk,kalinlik)</code>,
+              <code>arkaplan(renk)</code><br />
+              Süre: en üste <code>@5s</code> yaz (varsayılan 5 sn, max 30 sn).
+            </small>
+          </div>
         </div>
       </div>
 
@@ -57,7 +60,6 @@ daire(x, 360, 50, "#ff6b35");</textarea>
       </div>
     </section>
 
-    <!-- Sonuç -->
     <section class="result" id="resultSection" hidden>
       <a id="downloadBtn" class="primary download" download>⬇️ Videoyu İndir</a>
     </section>
