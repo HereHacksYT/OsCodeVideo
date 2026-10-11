@@ -79,17 +79,12 @@
     toastMsg.textContent = mesaj;
     toast.classList.add("show");
     if (toastTimer) clearTimeout(toastTimer);
-
     if (undoFn && toastUndo) {
       toastUndo.style.display = "";
-      toastUndo.onclick = function () {
-        undoFn();
-        toastGizle();
-      };
+      toastUndo.onclick = function () { undoFn(); toastGizle(); };
     } else if (toastUndo) {
       toastUndo.style.display = "none";
     }
-
     toastTimer = setTimeout(toastGizle, 5000);
   }
   function toastGizle() {
@@ -107,10 +102,7 @@
     if (!howModal) return;
     howModal.classList.remove("show");
     document.body.style.overflow = "";
-    if (copyBtn) {
-      copyBtn.classList.remove("ok");
-      copyBtn.textContent = "📋 Kopyala";
-    }
+    if (copyBtn) { copyBtn.classList.remove("ok"); copyBtn.textContent = "📋 Kopyala"; }
   }
   if (howBtn) howBtn.addEventListener("click", openModal);
   if (modalClose) modalClose.addEventListener("click", closeModal);
@@ -208,7 +200,9 @@
     "@2s\narkaplan('#0a0a1a');\nsimsek(200, 100, W - 200, H - 100, '#fff200', 6);\nyildizPatlamasi(W/2, H/2, 100, '#fff');",
     "@5s\narkaplan('#0f1117');\nconst b = Math.min(W, H) * 0.55;\nresim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - b/2, H/2 - b/2, b, b);",
     "@2s\ngradient('#ff6b35', '#ffd23f', 'dikey');\nyazi('Merhaba!', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#6c8cff', '#a200ff', 'dikey');\nyazi('OsCodeVideo', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#22c55e', '#16a34a', 'dikey');\nyazi('Hoş geldin!', W/2, H/2, 90, '#fff');",
-    "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d9ff');"
+    "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d9ff');",
+    // 10 - Konuşma (TTS)
+    "@5s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nseslendir('Merhaba, OsCodeVideo kanalına hoş geldiniz!', 'tr');\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.1;\ngolge('#00d9ff', 40, 0, 0);\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\ngolgeKapat();\nyazi('Hoş Geldiniz!', W/2, H - 120, 60, '#fff');"
   ];
 
   for (var ofx = 0; ofx < ORNEKLER.length; ofx++) {
@@ -255,16 +249,12 @@
     clearBtn.addEventListener("click", function () {
       var eskiKod = codeInput.value;
       if (!eskiKod || eskiKod.trim() === "@5s") {
-        toastGoster("⚠️ Zaten boş");
-        return;
+        toastGoster("⚠️ Zaten boş"); return;
       }
       codeInput.value = "@5s\n";
-      kodKaydet();
-      sureGuncelle();
+      kodKaydet(); sureGuncelle();
       toastGoster("🗑️ Kod temizlendi", function () {
-        codeInput.value = eskiKod;
-        kodKaydet();
-        sureGuncelle();
+        codeInput.value = eskiKod; kodKaydet(); sureGuncelle();
       });
     });
   }
@@ -308,6 +298,7 @@
   var sesDest = null;
   var sesCache = {};
   var sesKaynaklari = [];
+  var sessizKaynak = null;
 
   function sesKur() {
     if (sesCtx) return;
@@ -317,6 +308,19 @@
       sesCtx = new AC();
       sesDest = sesCtx.createMediaStreamDestination();
       if (sesCtx.state === "suspended" && sesCtx.resume) sesCtx.resume();
+
+      // ÖNEMLİ: Sessiz ses kaynağı — MediaRecorder'ın ses kanalını canlı tutar
+      try {
+        var buf = sesCtx.createBuffer(1, sesCtx.sampleRate * 2, sesCtx.sampleRate);
+        sessizKaynak = sesCtx.createBufferSource();
+        sessizKaynak.buffer = buf;
+        sessizKaynak.loop = true;
+        sessizKaynak.connect(sesDest);
+        // NOT: hoparlöre bağlamıyoruz, sadece kayda gider
+        sessizKaynak.start(0);
+      } catch (e) {
+        console.warn("Sessiz kaynak başlatılamadı:", e);
+      }
     } catch (e) { sesCtx = null; sesDest = null; }
   }
 
@@ -754,22 +758,23 @@
       }
     }
 
-    if (typeof MediaRecorder === "undefined") { addBotMessage("❌ Tarayıcın MediaRecorder desteklemiyor.", "err"); return; }
-    if (!canvas.captureStream) { addBotMessage("❌ Tarayıcın canvas kaydını desteklemiyor.", "err"); return; }
+    if (typeof MediaRecorder === "undefined") { addBotMessage("am❌ Tarayıcın MediaRecorder desteklemiyor.", "err"); return; }
+    if (!canvas.captureStream) { addBotMessage("❌ Tarayıcın canvas kaydını desteklemiyor ✓.", "err"); return; }
 
     var mime = pickMime();
-    if (!mime) { addBotMessage("❌ Uygun format yok.", "err"); return; }
+    if (!mime) { addBotMessage("❌ Uygun format yok.",");
+ "err"); return; }
     var ext = mime.indexOf("mp4") >= 0 ? "mp4" : "webm";
 
-    iptalEdildi = false;
+    i   ptalEdildi = false;
     clearVideoChat();
     generateBtn.disabled = true;
-    if (cancelBtn) cancelBtn.hidden = false;
+    if (cancelBtn) cancelBtn.hidden = false };
     previewVideo.hidden = true;
     resultSec.hidden = true;
     canvas.style.display = "block";
     progressBar.hidden = false;
-    progressFill.style.width = "0%";
+    else progressFill.style.width = "0%";
     generateBtn.textContent = "⚡ Üretiliyor...";
 
     var sahneSayisi = derlenmis.length;
@@ -783,13 +788,10 @@
       m1 = addBotMessage('<span class="spinner"></span> ' +
         (resimVar ? '🖼️ Resimler ' : '') +
         (resimVar && sesVar ? 've ' : '') +
-        (sesVar ? '🔊 ses dosyaları ' : '') +
-        'yükleniyor...');
-
+        (sesVar ? '🔊 ses dosyaları ' : '') + 'yükleniyor...');
       if (resimVar) await resimleriOnYukle(raw);
       if (sesVar) await sesleriOnYukle(raw);
-      updateMessage(m1, "Hazırlık tamam ✓");
-    } else {
+      updateMessage(m1, "Hazırlık tam {
       m1 = addBotMessage('<span class="spinner"></span> 📥 Analiz ediliyor...');
       await sleep(250);
       updateMessage(m1, "📥 Analiz tamam ✓");
@@ -818,12 +820,15 @@
 
     await sleep(200);
 
+    // Kayıt: video + (varsa) ses track
     var stream, rec;
     try {
       var canvasStream = canvas.captureStream(FPS);
-      var tracks = [];
-      canvasStream.getVideoTracks().forEach(function (t) { tracks.push(t); });
-      if (sesDest) sesDest.stream.getAudioTracks().forEach(function (t) { tracks.push(t); });
+      var tracks = canvasStream.getVideoTracks().slice();
+      if (sesDest) {
+        var audioTracks = sesDest.stream.getAudioTracks();
+        for (var ai = 0; ai < audioTracks.length; ai++) tracks.push(audioTracks[ai]);
+      }
       stream = new MediaStream(tracks);
       rec = new MediaRecorder(stream, { mimeType: mime });
     } catch (e) {
@@ -845,7 +850,7 @@
       rec.onstop = function () {
         clearTimeout(killer); stopped = true;
         if (iptalEdildi) { reject(new Error("__IPTAL__")); return; }
-        if (!chunks.length) { reject(new Error("Kayıt boş.")); return; }
+        if (!chunks.length) { reject(new Error("Kayıt boş döndü. Tekrar dene.")); return; }
         resolve(new Blob(chunks, { type: mime }));
       };
       rec.onerror = function (e) {
@@ -854,7 +859,8 @@
       };
     });
 
-    rec.start();
+    // 100ms'de bir veri → boş kalmayı önler
+    rec.start(100);
     await sleep(200);
 
     var startTime = performance.now();
@@ -963,5 +969,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("✅ OsCodeVideo hazır (v21 - TTS)");
+  console.log("✅ OsCodeVideo hazır (v22)");
 })();
