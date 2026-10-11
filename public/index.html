@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <header>
@@ -13,12 +13,11 @@
   </header>
 
   <nav class="tabs">
-    <button class="tab active" id="tabVideo" data-tab="video">🎬 Video</button>
-    <button class="tab" id="tabConverter" data-tab="converter">🔄 Dönüştürücü</button>
+    <button class="tab active" data-tab="video">🎬 Video</button>
+    <button class="tab" data-tab="converter">🔄 Dönüştürücü</button>
   </nav>
 
   <main>
-    <!-- ============ VİDEO ============ -->
     <section class="page" id="pageVideo">
       <section class="stage">
         <canvas id="renderCanvas"></canvas>
@@ -28,19 +27,19 @@
         </div>
       </section>
 
-      <section class="chat" id="chatLog">
+      <section class="="chat" id="chatLog">
         <div class="bot-msg" id="welcomeMsg">
-          <div class="avatar">🤖</div>
+          <div classavatar">🤖</div>
           <div class="bubble">
-            Merhaba! Kodunu yaz, sana video yapayım. <br />
+            Merhaba! Kodunu yaz, sana video yapayım.<br />
             <small>
               <code>t</code> değişkeni 0'dan 1'e gider.<br />
-              Fonksiyonlar: <code>daire(x,y,r,renk)</code>,
-              <code>dikdortgen(x,y,w,h,renk)</code>,
-              <code>yazi(metin,x,y,boyut,renk)</code>,
-              <code>cizgi(x1,y1,x2,y2,renk,kalinlik)</code>,
+              <code>daire(x,y,r,renk)</code>
+              <code>dikdortgen(x,y,w,h,renk)</code>
+              <code>yazi(metin,x,y,boyut,renk)</code>
+              <code>cizgi(x1,y1,x2,y2,renk,kalinlik)</code>
               <code>arkaplan(renk)</code><br />
-              Süre: en üste <code>@5s</code> yaz (varsayılan 5 sn, max 30 sn).
+              Süre: en üste <code>@5s</code> yaz (max 30 sn).
             </small>
           </div>
         </div>
@@ -48,18 +47,16 @@
 
       <section class="input-area">
         <textarea id="codeInput" spellcheck="false">@5s
-// Top soldan sağa gidiyor
 const x = 100 + t * 900;
 daire(x, 360, 50, "#ff6b35");</textarea>
-
         <div class="actions">
           <div class="examples">
             <span>Örnekler:</span>
             <button data-ex="0">Top</button>
-            <button data-ex="1">Zıplayan Top</button>
+            <button data-ex="1">Zıplayan</button>
             <button data-ex="2">Yazı</button>
-            <button data-ex="3">Renk Geçişi</button>
-            <button data-ex="4">Dönen Kare</button>
+            <button data-ex="3">Renk</button>
+            <button data-ex="4">Kare</button>
           </div>
           <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
         </div>
@@ -70,7 +67,6 @@ daire(x, 360, 50, "#ff6b35");</textarea>
       </section>
     </section>
 
-    <!-- ============ DÖNÜŞTÜRÜCÜ ============ -->
     <section class="page" id="pageConverter" hidden>
       <section class="stage converter-stage" id="dropZone">
         <div class="drop-inner">
@@ -85,12 +81,8 @@ daire(x, 360, 50, "#ff6b35");</textarea>
         <div class="bot-msg" id="convWelcome">
           <div class="avatar">🤖</div>
           <div class="bubble">
-            WebM dosyanı yükle, MP4'e dönüştüreyim. <br />
-            <small>
-              Dosya max <b>100 MB</b>. <br />
-              İlk dönüşümde ffmpeg motoru (~25 MB) indirilir, biraz sürer.<br />
-              Sonraki dönüşümler hızlıdır.
-            </small>
+            WebM dosyanı yükle, MP4'e dönüştüreyim.<br />
+            <small>Max 100 MB. İlk seferde ~25 MB motor indirilir.</small>
           </div>
         </div>
       </section>
@@ -100,7 +92,7 @@ daire(x, 360, 50, "#ff6b35");</textarea>
         <div class="actions">
           <div class="examples">
             <span>Çıktı:</span>
-            <span class="conv-target">WebM → MP4 (H.264 + AAC)</span>
+            <span class="conv-target">WebM → MP4</span>
           </div>
           <button id="convertBtn" class="primary" disabled>🎬 MP4'e Dönüştür</button>
         </div>
@@ -112,6 +104,6 @@ daire(x, 360, 50, "#ff6b35");</textarea>
     </section>
   </main>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
