@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OsCodeVideo - Koddan Video Uret</title>
-  <link rel="stylesheet" href="style.css?v=23" />
+  <title>OsCodeVideo</title>
+  <link rel="stylesheet" href="style.css?v=25" />
 </head>
 <body>
-  <div id="hata" style="display:none;position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:10px 14px;font-size:12px;font-family:monospace;z-index:9999;word-break:break-all"></div>
-
   <header>
     <div class="logo">🎬 OsCode<span>Video</span></div>
     <div class="header-right">
@@ -47,19 +45,18 @@
         <div class="bubble">
           Merhaba! Kodunu yaz, sana video yapayım.<br />
           <small>
-            <b>Değişkenler:</b> <code>t</code> (0-1), <code>W</code>, <code>H</code><br />
+            <b>Değişkenler:</b> <code>t</code>, <code>W</code>, <code>H</code><br />
             <b>Çizim:</b> <code>daire</code> <code>dikdortgen</code> <code>yazi</code>
-            <code>cizgi</code> <code>arkaplan</code><br />
+            <code>cizgi</code> <code>arkaplan</code> <code>gradient</code><br />
             <b>Şekiller:</b> <code>yildiz</code> <code>kalp</code> <code>ucgen</code>
             <code>ok</code> <code>cokgen</code> <code>yildizPatlamasi</code>
             <code>konfeti</code> <code>simsek</code> <code>bulut</code> <code>gunes</code><br />
-            <b>Medya:</b> <code>emoji</code> <code>resim</code> <code>seslendir</code> (TTS)<br />
-            <b>Yazı anim:</b> <code>daktilo</code> <code>kaydir</code> <code>yukariCik</code><br />
-            <b>Efekt:</b> <code>gradient</code> <code>golge</code> <code>golgeKapat</code>
-            <code>bulanikla</code> <code>siyahBeyaz</code> <code>sepya</code>
-            <code>filtreKapat</code> <code>parcacik</code> <code>titre</code><br />
-            <b>Palet:</b> <code>renk("neon")</code> - array döner<br />
-            <b>Çoklu sahne:</b> <code>---</code> ile böl - Süre: <code>@5s</code> (max 60)
+            <b>Medya:</b> <code>emoji</code> <code>resim</code> <code>seslendir</code><br />
+            <b>Yazı:</b> <code>daktilo</code> <code>kaydir</code> <code>yukariCik</code><br />
+            <b>Efekt:</b> <code>golge</code> <code>bulanikla</code> <code>parcacik</code>
+            <code>titre</code><br />
+            <b>Palet:</b> <code>renk("neon")</code><br />
+            <b>Çoklu sahne:</b> <code>---</code> ile böl
           </small>
         </div>
       </div>
@@ -76,15 +73,15 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
           <span>Örnekler:</span>
           <button data-ex="0">Top</button>
           <button data-ex="1">Gradient</button>
-          <button data-ex="2">Parcacik</button>
-          <button data-ex="3">Golge</button>
+          <button data-ex="2">Parçacık</button>
+          <button data-ex="3">Gölge</button>
           <button data-ex="4">Filtre</button>
           <button data-ex="5">Konfeti</button>
-          <button data-ex="6">Simsek</button>
+          <button data-ex="6">Şimşek</button>
           <button data-ex="7">Logo</button>
-          <button data-ex="8">Coklu Sahne</button>
+          <button data-ex="8">Çoklu Sahne</button>
           <button data-ex="9">Daktilo</button>
-          <button data-ex="10">Konusma</button>
+          <button data-ex="10">🎤 Konuşma</button>
         </div>
         <div class="action-buttons">
           <button id="clearBtn" class="ghost">🗑️ Temizle</button>
@@ -109,25 +106,21 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
     <div class="modal">
       <div class="modal-head">
         <h2>❓ Nasıl Yapılır?</h2>
-        <button class="modal-close" id="modalClose" aria-label="Kapat">✕</button>
+        <button class="modal-close" id="modalClose">✕</button>
       </div>
-
       <p class="modal-desc">
         Aşağıdaki metni <b>kopyala</b> ve <b>ChatGPT / Claude / Gemini</b>'ye yapıştır.
-        Sonunda <code>[ISTEGINI YAZ]</code> kısmına ne istediğini yaz, sana
-        <b>OsCodeVideo</b> için hazır kod versin. 🎬
+        Sonunda <code>[ISTEGINI YAZ]</code> kısmına ne istediğini yaz.
       </p>
-
       <div class="modal-code-wrap">
         <pre class="modal-code" id="promptText">Sen OsCodeVideo için animasyon kodu yazan bir asistansın.
 
 Site: https://oscodevideo.onrender.com
-Kullanıcı kodu buraya yapıştırır, site videoya çevirir ve MP4/WebM indirir.
 
 DEĞİŞKENLER:
 - t: 0'dan 1'e giden animasyon ilerlemesi
-- W: sahne genişliği (piksel)
-- H: sahne yüksekliği (piksel)
+- W: sahne genişliği
+- H: sahne yüksekliği
 
 TEMEL ÇİZİM:
 - arkaplan(renk)
@@ -135,6 +128,7 @@ TEMEL ÇİZİM:
 - dikdortgen(x, y, w, h, renk)
 - yazi(metin, x, y, boyut, renk)
 - cizgi(x1, y1, x2, y2, renk, kalinlik)
+- gradient(renk1, renk2, "dikey"|"yatay"|"capraz")
 
 ŞEKİLLER:
 - yildiz(x, y, r, noktaSayisi, renk)
@@ -148,34 +142,23 @@ TEMEL ÇİZİM:
 - bulut(x, y, boyut, renk)
 - gunes(x, y, yaricap, renk)
 
-SESLENDİRME (TTS):
+MEDYA:
+- emoji("🚀", x, y, boyut)
+- resim(url, x, y, w, h) - URL CORS desteklemeli
+
+SESLENDİRME:
 - seslendir("Metin", "tr")
-- Belirtilen metni sese cevirir ve videoya gomer
 - yazi() SESSIZDIR, sadece goruntu verir
 - Diller: tr, en, de, fr, es, it, ru, ar, ja, ko, zh
 - Metin 200 karakteri gecmesin
+- Ornek: seslendir('Merhaba dunya!', 'tr');
 
-  ORNEK:
-  @5s
-  arkaplan('#0f1117');
-  seslendir('Merhaba dunya!', 'tr');
-  yazi('Merhaba dunya!', W/2, H/2, 80, '#fff');
-
-MEDYA - EMOJI:
-- emoji("🚀", x, y, boyut)
-
-MEDYA - RESIM:
-- resim(url, x, y, w, h)
-- URL CORS desteklemeli (imgur, i.ibb.co, cloudinary)
-- Ornek: resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - 150, H/2 - 150, 300, 300);
-
-YAZI ANIMASYONLARI:
+YAZI ANİMASYONLARI:
 - daktilo(metin, x, y, boyut, renk)
 - kaydir(metin, x, y, boyut, renk)
 - yukariCik(metin, x, y, boyut, renk)
 
 EFEKT:
-- gradient(renk1, renk2, "dikey"|"yatay"|"capraz")
 - golge(renk, blur, xOffset, yOffset)
 - golgeKapat()
 - bulanikla(piksel)
@@ -185,45 +168,32 @@ EFEKT:
 - parcacik(x, y, sayi, renk, boyut)
 - titre(miktar)
 
-RENK PALETLERI (array doner):
+RENK PALETLERİ (array döner):
 - renk("neon") renk("gunbatimi") renk("okyanus")
 - renk("ates") renk("orman") renk("pastel")
 - renk("gece") renk("altin")
-Kullanim: const p = renk("neon"); daire(100, 100, 50, p[0]);
 
 KURALLAR:
-- En uste sure yaz: @5s (max @60s)
-- Coklu sahne icin --- satiri ile bol
-- Sadece verilen fonksiyonlari kullan
+- En üste süre yaz: @5s (max @60s)
+- Çoklu sahne için --- satırı ile böl
 - Renkleri hex ('#ff6b35') yaz
-- Metin ortalama icin x = W/2, y = H/2 kullan
-- Resim URL'si MUTLAKA CORS desteklemeli
-- Seslendirme metni kisa olsun
+- Metin ortalamak için x = W/2, y = H/2
 
-ORNEK - Basit:
+ÖRNEK:
 @5s
 gradient('#0a0a1a', '#1a0033', 'dikey');
+seslendir('Merhaba!', 'tr');
 const x = 100 + t * (W - 200);
 daire(x, H/2, 50, '#ff6b35');
 
-ORNEK - Sesli tanitim:
-@6s
-gradient('#0a0a1a', '#1a0033', 'capraz');
-seslendir('Merhaba, OsCodeVideo kanalina hos geldiniz!', 'tr');
-golge('#00d9ff', 40, 0, 0);
-yildiz(W/2, H/2, 150, 5, '#00d9ff');
-golgeKapat();
-yazi('Hos Geldiniz!', W/2, H - 120, 60, '#fff');
-
-Şimd benim icin su videoyu yap: [ISTEGINI YAZ]</pre>
+Şimdi benim için şu videoyu yap: [ISTEGINI YAZ]</pre>
       </div>
-
       <div class="modal-foot">
         <button class="primary copy-btn" id="copyBtn">📋 Kopyala</button>
       </div>
     </div>
   </div>
 
-  <script src="app.js?v=23"></script>
+  <script src="app.js?v=25"></script>
 </body>
 </html>
