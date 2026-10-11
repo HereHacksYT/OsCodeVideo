@@ -251,7 +251,7 @@
     });
   }
 
-  /* ==================== TEMİZLE (Geri Al ile) ==================== */
+  /* ==================== TEMİZLE ==================== */
   if (clearBtn && codeInput) {
     clearBtn.addEventListener("click", function () {
       var eskiKod = codeInput.value;
@@ -259,11 +259,9 @@
         toastGoster("⚠️ Zaten boş");
         return;
       }
-
       codeInput.value = "@5s\n";
       kodKaydet();
       sureGuncelle();
-
       toastGoster("🗑️ Kod temizlendi", function () {
         codeInput.value = eskiKod;
         kodKaydet();
@@ -306,9 +304,104 @@
     else sureBilgi.style.color = "";
   }
 
+  /* ==================== TTS (Seslendirme) ==================== */
+  var sesCtx = null;
+  var sesDest = null;
+  var sesCache = {};   // "metin|dil" -> AudioBuffer
+  var sesKaynaklari = []; // aktif çalanlar
+
+  function sesKur() {
+    if (sesCtx) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      sesCtx = new AC();
+      sesDest = sesCtx.createMediaStreamDestination();
+      if (sesCtx.state === "suspended" && sesCtx.resume) {
+        sesCtx.resume();
+      }
+    } catch (e) {
+      sesCtx = null; sesDest = null;
+    }
+  }
+
+  async function ttsGetir(metin, dil) {
+    var key = metin + "|" + dil;
+    if (sesCache[key]) return sesCache[key];
+    if (!sesCtx) return null;
+
+    // Google Translate TTS (ücretsiz, sınırsız-ish, karakter limiti ~200)
+    var url = "https://translate.google.com/translate_tts?ie=UTF-8&q=" +
+              encodeURIComponent(metin) + "&tl=" + encodeURIComponent(dil) +
+              "&client=tw-ob&ttsspeed=1";
+
+    try {
+      var res = await fetch(url, { mode: "cors" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      var buf = await res.arrayBuffer();
+      var audioBuf = await new Promise(function (resolve, reject) {
+        sesCtx.decodeAudioData(buf.slice(0),
+          function (b) { resolve(b); },
+          function (e) { reject(e); });
+      });
+      sesCache[key] = audioBuf;
+      return audioBuf;
+    } catch (e) {
+      console.warn("TTS alınamadı:", metin, e);
+      return null;
+    }
+  }
+
+  async function sesleriOnYukle(code) {
+    var re = /seslendir\s*\(\s*(['"])((?:\\.|(?!\1).)*)\1\s*(?:,\s*(['"])([^'"]*)\3\s*)?\)/g;
+    var m;
+    var list = [];
+    while ((m = re.exec(code)) !== null) {
+      var text = m[2].replace(/\\(.)/g, "$1");
+      var dil = m[4] || "tr";
+      var key = text + "|" + dil;
+      if (!sesCache[key] && !list.some(function (x) { return x.key === key; })) {
+        list.push({ text: text, dil: dil, key: key });
+      }
+    }
+    for (var i = 0; i < list.length; i++) {
+      await ttsGetir(list[i].text, list[i].dil);
+    }
+    return list.length;
+  }
+
+  function sesOynat(metin, dil) {
+    if (!sesCtx || !sesDest) return;
+    var key = metin + "|" + dil;
+    var audioBuf = sesCache[key];
+    if (!audioBuf) return;
+
+    try {
+      var src = sesCtx.createBufferSource();
+      src.buffer = audioBuf;
+      src.connect(sesDest);              // kayda gitsin
+      src.connect(sesCtx.destination);   // hoparlörden duyulsun
+      src.start(0);
+      sesKaynaklari.push(src);
+      src.onended = function () {
+        var idx = sesKaynaklari.indexOf(src);
+        if (idx >= 0) sesKaynaklari.splice(idx, 1);
+      };
+    } catch (e) {
+      console.warn("Ses çalınamadı:", e);
+    }
+  }
+
+  function sesleriDurdur() {
+    for (var i = 0; i < sesKaynaklari.length; i++) {
+      try { sesKaynaklari[i].stop(); } catch (e) {}
+    }
+    sesKaynaklari = [];
+  }
+
   /* ==================== HELPERS ==================== */
   var imgCache = {};
-  var state = { t: 0 };
+  var state = { t: 0, seslendirilenler: {} };
 
   function makeHelpers() {
     return {
@@ -612,6 +705,13 @@
         };
         var p = paletler[(isim || "").toLowerCase()] || paletler.neon;
         return p.slice();
+      },
+      seslendir: function (metin, dil) {
+        dil = dil || "tr";
+        var key = metin + "|" + dil;
+        if (state.seslendirilenler[key]) return;
+        state.seslendirilenler[key] = true;
+        sesOynat(metin, dil);
       }
     };
   }
@@ -633,7 +733,8 @@
       'golge=yardimci.golge,golgeKapat=yardimci.golgeKapat,' +
       'bulanikla=yardimci.bulanikla,siyahBeyaz=yardimci.siyahBeyaz,' +
       'sepya=yardimci.sepya,filtreKapat=yardimci.filtreKapat,' +
-      'titre=yardimci.titre,parcacik=yardimci.parcacik,renk=yardimci.renk;' +
+      'titre=yardimci.titre,parcacik=yardimci.parcacik,renk=yardimci.renk,' +
+      'seslendir=yardimci.seslendir;' +
       code
     );
   }
@@ -661,25 +762,20 @@
     return Promise.all(promises);
   }
 
-  /* ==================== WATERMARK (dengeli) ==================== */
+  /* ==================== WATERMARK ==================== */
   function watermarkCiz(globalElapsedMs, toplamMs) {
     var kalanMs = toplamMs - globalElapsedMs;
     if (kalanMs < 0) return;
-
-    // Kısa videolarda tamamında, uzunlarda son 5 sn'de
     var gostermeSuresi = Math.min(WATERMARK_MS, toplamMs);
     if (kalanMs > gostermeSuresi) return;
 
     var elapsedSn = globalElapsedMs / 1000;
-    // Yumuşak nabız: 0.34 - 0.50 arası (orta görünürlük)
     var alpha = 0.42 + Math.sin(elapsedSn * 5) * 0.08;
-
     var boyut = Math.round(Math.min(W, H) * 0.11);
     if (boyut < 32) boyut = 32;
 
     ctx.save();
     ctx.globalAlpha = alpha;
-    // Hafif siyah gölge (kontrast için)
     ctx.shadowColor = "#000";
     ctx.shadowBlur = Math.round(boyut * 0.25);
     ctx.fillStyle = "#00d9ff";
@@ -783,12 +879,31 @@
 
     var sahneSayisi = derlenmis.length;
 
-    var resimVar = /resim\s*\(/.test(raw);
+    // AudioContext'i başlat
+    sesKur();
+
     var m1;
-    if (resimVar) {
-      m1 = addBotMessage('<span class="spinner"></span> 🖼️ Resimler yükleniyor...');
-      await resimleriOnYukle(raw);
-      updateMessage(m1, "🖼️ Resimler hazır ✓");
+    var resimVar = /resim\s*\(/.test(raw);
+    var sesVar = /seslendir\s*\(/.test(raw);
+
+    if (resimVar || sesVar) {
+      m1 = addBotMessage('<span class="spinner"></span> ' +
+        (resimVar ? '🖼️ Resimler ' : '') +
+        (resimVar && sesVar ? 've ' : '') +
+        (sesVar ? '🔊 ses dosyaları ' : '') +
+        'yükleniyor...');
+
+      if (resimVar) await resimleriOnYukle(raw);
+      if (sesVar) {
+        var sesAdet = await sesleriOnYukle(raw);
+        if (sesAdet > 0) {
+          updateMessage(m1, "🖼️🔊 Hazırlık tamam ✓ <small>(" + sesAdet + " ses yüklendi)</small>");
+        } else {
+          updateMessage(m1, "🖼️ Hazırlık tamam ✓ <small>(ses yüklenemedi, sessiz devam edilecek)</small>");
+        }
+      } else {
+        updateMessage(m1, "🖼️ Hazırlık tamam ✓");
+      }
     } else {
       m1 = addBotMessage('<span class="spinner"></span> 📥 ' + sahneSayisi + ' sahne analiz ediliyor...');
       await sleep(300);
@@ -806,6 +921,8 @@
     var m3 = addBotMessage('<span class="spinner"></span> 🏃 Animasyon oynatılıyor...<div class="mini-bar"><div></div></div>');
     var miniFill = m3 ? m3.querySelector(".mini-bar > div") : null;
 
+    state.seslendirilenler = {};
+
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
     state.t = 0;
@@ -818,12 +935,22 @@
 
     await sleep(200);
 
+    // Ses varsa ses trackini de ekle
     var stream, rec;
     try {
-      stream = canvas.captureStream(FPS);
+      var canvasStream = canvas.captureStream(FPS);
+      var tracks = [];
+
+      canvasStream.getVideoTracks().forEach(function (t) { tracks.push(t); });
+
+      if (sesDest) {
+        sesDest.stream.getAudioTracks().forEach(function (t) { tracks.push(t); });
+      }
+
+      stream = new MediaStream(tracks);
       rec = new MediaRecorder(stream, { mimeType: mime });
     } catch (e) {
-      updateMessage(m3, "❌ MediaRecorder hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
+      updateMessage(m3, "❌ MediaRecorderort hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
       uretimBitti(); progressBar.hidden = true; return;
     }
 
@@ -875,18 +1002,18 @@
       }
 
       var elapsed = performance.now() - startTime;
-      var globalT = Math.min(1, elapsed / toplamMs);
+      var globalT = Math.min(1, elapsed / togenplamMs);
       var hs = hangiSahne(elapsed);
       state.t = Math.max(0, Math.min(1, hs.localT));
 
-      ctx.fillStyle = "#000";
+      ctx.fillStyle = "#(x000";
       ctx.fillRect(0, 0, W, H);
 
       try {
-        derlenmis[hs.idx].fn(ctx, state.t, frameNo++, derlenmis[hs.idx].duration, W, H, helpers);
+        derlenmis[hs.idx].fn(ctx, state.t, frameNo,++, derlenmis[hs.idx].duration, W, H, helpers);
       } catch (e) {
-        try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
-        updateMessage(m3, "❌ Sahne " + (hs.idx+1) + " hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
+        try { y if (rec.state !== "inactive") rec.stop(); } catch (x) {}
+        updateMessage(m3, "❌, Sahne " + (hs.idx+1) + " hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
         uretimBitti(); progressBar.hidden = true; return;
       }
 
@@ -899,9 +1026,10 @@
 
       var sahneEtiket = sahneSayisi > 1 ? " [Sahne " + (hs.idx+1) + "/" + sahneSayisi + "]" : "";
       var wmEtiket = (toplamMs - elapsed) <= WATERMARK_MS ? " <small>🔷</small>" : "";
+      var sesEtiket = (sesKaynaklari.length > 0) ? " <small>🔊</small>" : "";
       updateMessage(m3,
         "🏃 Animasyon oynatılıyor" + sahneEtiket + "... %" + pct +
-        " <small>(~" + kalan + " sn)</small>" + wmEtiket +
+        " <small>(~" + kalan + " sn)</small>" + wmEtiket + sesEtiket +
         '<div class="mini-bar"><div style="width:' + pct + '%"></div></div>'
       );
       generateBtn.textContent = "⚡ Üretiliyor... %" + pct;
@@ -919,6 +1047,7 @@
     var blob;
     try { blob = await blobPromise; }
     catch (e) {
+      sesleriDurdur();
       if (e.message === "__IPTAL__") {
         updateMessage(m3, "🛑 Üretim durduruldu.", "");
         toastGoster("🛑 Üretim durduruldu");
@@ -928,6 +1057,7 @@
       uretimBitti(); progressBar.hidden = true; return;
     }
 
+    sesleriDurdur();
     updateMessage(m3, "🏃 Animasyon tamamlandı ✓");
 
     var m4 = addBotMessage('<span class="spinner"></span> 💾 Video işleniyor...');
@@ -947,6 +1077,9 @@
       (blob.size / 1024 / 1024).toFixed(2) + " MB • ." + ext + ")</small>",
       "ok"
     );
+    if (sesVar) {
+      addBotMessage("🔊 <b>Seslendirme</b> videoya gömüldü.", "ok");
+    }
     addBotMessage("🔷 Son 5 saniyeye <b>OsCodeVideo</b> imzası otomatik gömüldü.", "ok");
     addBotMessage("İndirmek için alttaki ⬇️ butonuna bas.", "ok");
 
@@ -967,5 +1100,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("✅ OsCodeVideo hazır (v17 - dengeli watermark)");
+  console.log("✅ OsCodeVideo hazır (v18 - TTS)");
 })();
