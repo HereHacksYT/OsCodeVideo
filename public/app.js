@@ -251,7 +251,6 @@
     });
   }
 
-  /* ==================== TEMİZLE ==================== */
   if (clearBtn && codeInput) {
     clearBtn.addEventListener("click", function () {
       var eskiKod = codeInput.value;
@@ -270,7 +269,7 @@
     });
   }
 
-  /* ==================== PARSE & SÜRE ==================== */
+  /* ==================== PARSE ==================== */
   function parseCode(raw) {
     var duration = 5;
     var m = raw.match(/@(\d+(?:[.,]\d+)?)s?\b/);
@@ -304,11 +303,11 @@
     else sureBilgi.style.color = "";
   }
 
-  /* ==================== TTS (Seslendirme) ==================== */
+  /* ==================== TTS ==================== */
   var sesCtx = null;
   var sesDest = null;
-  var sesCache = {};   // "metin|dil" -> AudioBuffer
-  var sesKaynaklari = []; // aktif çalanlar
+  var sesCache = {};
+  var sesKaynaklari = [];
 
   function sesKur() {
     if (sesCtx) return;
@@ -317,24 +316,17 @@
       if (!AC) return;
       sesCtx = new AC();
       sesDest = sesCtx.createMediaStreamDestination();
-      if (sesCtx.state === "suspended" && sesCtx.resume) {
-        sesCtx.resume();
-      }
-    } catch (e) {
-      sesCtx = null; sesDest = null;
-    }
+      if (sesCtx.state === "suspended" && sesCtx.resume) sesCtx.resume();
+    } catch (e) { sesCtx = null; sesDest = null; }
   }
 
   async function ttsGetir(metin, dil) {
     var key = metin + "|" + dil;
     if (sesCache[key]) return sesCache[key];
     if (!sesCtx) return null;
-
-    // Google Translate TTS (ücretsiz, sınırsız-ish, karakter limiti ~200)
     var url = "https://translate.google.com/translate_tts?ie=UTF-8&q=" +
               encodeURIComponent(metin) + "&tl=" + encodeURIComponent(dil) +
               "&client=tw-ob&ttsspeed=1";
-
     try {
       var res = await fetch(url, { mode: "cors" });
       if (!res.ok) throw new Error("HTTP " + res.status);
@@ -364,32 +356,26 @@
         list.push({ text: text, dil: dil, key: key });
       }
     }
-    for (var i = 0; i < list.length; i++) {
-      await ttsGetir(list[i].text, list[i].dil);
-    }
+    for (var i = 0; i < list.length; i++) await ttsGetir(list[i].text, list[i].dil);
     return list.length;
   }
 
   function sesOynat(metin, dil) {
     if (!sesCtx || !sesDest) return;
-    var key = metin + "|" + dil;
-    var audioBuf = sesCache[key];
+    var audioBuf = sesCache[metin + "|" + dil];
     if (!audioBuf) return;
-
     try {
       var src = sesCtx.createBufferSource();
       src.buffer = audioBuf;
-      src.connect(sesDest);              // kayda gitsin
-      src.connect(sesCtx.destination);   // hoparlörden duyulsun
+      src.connect(sesDest);
+      src.connect(sesCtx.destination);
       src.start(0);
       sesKaynaklari.push(src);
       src.onended = function () {
         var idx = sesKaynaklari.indexOf(src);
         if (idx >= 0) sesKaynaklari.splice(idx, 1);
       };
-    } catch (e) {
-      console.warn("Ses çalınamadı:", e);
-    }
+    } catch (e) {}
   }
 
   function sesleriDurdur() {
@@ -405,10 +391,7 @@
 
   function makeHelpers() {
     return {
-      arkaplan: function (renk) {
-        ctx.fillStyle = renk || "#000";
-        ctx.fillRect(0, 0, W, H);
-      },
+      arkaplan: function (renk) { ctx.fillStyle = renk || "#000"; ctx.fillRect(0, 0, W, H); },
       gradient: function (r1, r2, yon) {
         yon = yon || "dikey";
         var g;
@@ -417,33 +400,23 @@
         else g = ctx.createLinearGradient(0, 0, 0, H);
         g.addColorStop(0, r1 || "#000");
         g.addColorStop(1, r2 || "#fff");
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
       },
       daire: function (x, y, r, renk) {
         ctx.fillStyle = renk || "#fff";
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
       },
-      dikdortgen: function (x, y, w, h, renk) {
-        ctx.fillStyle = renk || "#fff";
-        ctx.fillRect(x, y, w, h);
-      },
+      dikdortgen: function (x, y, w, h, renk) { ctx.fillStyle = renk || "#fff"; ctx.fillRect(x, y, w, h); },
       yazi: function (metin, x, y, boyut, renk) {
         ctx.fillStyle = renk || "#fff";
         ctx.font = "bold " + (boyut || 32) + "px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(metin, x, y);
       },
       cizgi: function (x1, y1, x2, y2, renk, kalinlik) {
         ctx.strokeStyle = renk || "#fff";
         ctx.lineWidth = kalinlik || 2;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
       },
       yildiz: function (x, y, r, nokta, renk) {
         nokta = nokta || 5; r = r || 40;
@@ -454,11 +427,9 @@
           var a = (Math.PI / nokta) * i - Math.PI / 2;
           var px = x + Math.cos(a) * rr;
           var py = y + Math.sin(a) * rr;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
-        ctx.closePath();
-        ctx.fill();
+        ctx.closePath(); ctx.fill();
       },
       kalp: function (x, y, boyut, renk) {
         var s = (boyut || 100) / 100;
@@ -473,33 +444,24 @@
       },
       ucgen: function (x1, y1, x2, y2, x3, y3, renk) {
         ctx.fillStyle = renk || "#fff";
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.lineTo(x3, y3);
-        ctx.closePath();
-        ctx.fill();
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3);
+        ctx.closePath(); ctx.fill();
       },
       ok: function (x1, y1, x2, y2, renk, kalinlik) {
         var angle = Math.atan2(y2 - y1, x2 - x1);
         var len = Math.hypot(x2 - x1, y2 - y1);
         var headLen = Math.min(40, len * 0.35);
         kalinlik = kalinlik || 5;
-        ctx.strokeStyle = renk || "#fff";
-        ctx.fillStyle = renk || "#fff";
+        ctx.strokeStyle = renk || "#fff"; ctx.fillStyle = renk || "#fff";
         ctx.lineWidth = kalinlik;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
+        ctx.beginPath(); ctx.moveTo(x1, y1);
         var bx = x2 - Math.cos(angle) * headLen * 0.85;
         var by = y2 - Math.sin(angle) * headLen * 0.85;
-        ctx.lineTo(bx, by);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x2, y2);
+        ctx.lineTo(bx, by); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x2, y2);
         ctx.lineTo(x2 - Math.cos(angle - 0.4) * headLen, y2 - Math.sin(angle - 0.4) * headLen);
         ctx.lineTo(x2 - Math.cos(angle + 0.4) * headLen, y2 - Math.sin(angle + 0.4) * headLen);
-        ctx.closePath();
-        ctx.fill();
+        ctx.closePath(); ctx.fill();
       },
       cokgen: function (x, y, r, kenar, renk) {
         kenar = kenar || 6; r = r || 50;
@@ -509,17 +471,13 @@
           var a = (Math.PI * 2 / kenar) * i - Math.PI / 2;
           var px = x + Math.cos(a) * r;
           var py = y + Math.sin(a) * r;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
-        ctx.closePath();
-        ctx.fill();
+        ctx.closePath(); ctx.fill();
       },
       yildizPatlamasi: function (x, y, boyut, renk) {
         boyut = boyut || 80;
-        ctx.strokeStyle = renk || "#fff";
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
+        ctx.strokeStyle = renk || "#fff"; ctx.lineWidth = 3; ctx.lineCap = "round";
         for (var i = 0; i < 12; i++) {
           var a = (Math.PI * 2 / 12) * i;
           ctx.beginPath();
@@ -529,8 +487,7 @@
         }
       },
       konfeti: function (x, y, sayi, boyut) {
-        sayi = sayi || 30;
-        boyut = boyut || 10;
+        sayi = sayi || 30; boyut = boyut || 10;
         var renkler = ["#ff6b35", "#f7931e", "#ffd23f", "#ee4266", "#6c8cff", "#22c55e"];
         for (var i = 0; i < sayi; i++) {
           var seed = i * 12.9898;
@@ -539,21 +496,16 @@
           var px = x + Math.cos(a) * r;
           var py = y + Math.sin(a) * r;
           ctx.fillStyle = renkler[i % renkler.length];
-          ctx.save();
-          ctx.translate(px, py);
-          ctx.rotate(a + t * 3);
+          ctx.save(); ctx.translate(px, py); ctx.rotate(a + t * 3);
           ctx.fillRect(-boyut / 2, -boyut / 4, boyut, boyut / 2);
           ctx.restore();
         }
       },
       simsek: function (x1, y1, x2, y2, renk, kalinlik) {
         kalinlik = kalinlik || 4;
-        ctx.strokeStyle = renk || "#fff200";
-        ctx.lineWidth = kalinlik;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
+        ctx.strokeStyle = renk || "#fff200"; ctx.lineWidth = kalinlik;
+        ctx.lineCap = "round"; ctx.lineJoin = "round";
+        ctx.beginPath(); ctx.moveTo(x1, y1);
         var segCount = 8;
         for (var i = 1; i < segCount; i++) {
           var p = i / segCount;
@@ -562,8 +514,7 @@
           var my = y1 + (y2 - y1) * p + (Math.sin(seed + 1) * 43758.5453 % 1) * 40;
           ctx.lineTo(mx, my);
         }
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+        ctx.lineTo(x2, y2); ctx.stroke();
       },
       bulut: function (x, y, boyut, renk) {
         boyut = boyut || 60;
@@ -577,15 +528,10 @@
         ctx.fill();
       },
       gunes: function (x, y, yaricap, renk) {
-        yaricap = yaricap || 60;
-        renk = renk || "#ffd700";
+        yaricap = yaricap || 60; renk = renk || "#ffd700";
         ctx.fillStyle = renk;
-        ctx.beginPath();
-        ctx.arc(x, y, yaricap, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = renk;
-        ctx.lineWidth = 4;
-        ctx.lineCap = "round";
+        ctx.beginPath(); ctx.arc(x, y, yaricap, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = renk; ctx.lineWidth = 4; ctx.lineCap = "round";
         for (var i = 0; i < 12; i++) {
           var a = (Math.PI * 2 / 12) * i;
           ctx.beginPath();
@@ -597,8 +543,7 @@
       emoji: function (karakter, x, y, boyut) {
         boyut = boyut || 64;
         ctx.font = boyut + "px system-ui, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(karakter, x, y);
       },
       resim: function (url, x, y, w, h) {
@@ -607,17 +552,12 @@
           img = new Image();
           img.crossOrigin = "anonymous";
           img.onerror = function () { img.__hata = true; };
-          img.src = url;
-          imgCache[url] = img;
-          return;
+          img.src = url; imgCache[url] = img; return;
         }
         if (img.__hata) {
-          ctx.fillStyle = "#ff6b35";
-          ctx.fillRect(x, y, w || 200, h || 200);
-          ctx.fillStyle = "#fff";
-          ctx.font = "bold 16px system-ui";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
+          ctx.fillStyle = "#ff6b35"; ctx.fillRect(x, y, w || 200, h || 200);
+          ctx.fillStyle = "#fff"; ctx.font = "bold 16px system-ui";
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
           ctx.fillText("Resim yüklenemedi", x + (w || 200) / 2, y + (h || 200) / 2);
           return;
         }
@@ -629,8 +569,7 @@
         var n = Math.floor(state.t * metin.length);
         ctx.fillStyle = renk || "#fff";
         ctx.font = "bold " + boyut + "px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(metin.slice(0, n), x, y);
       },
       kaydir: function (metin, x, y, boyut, renk) {
@@ -638,8 +577,7 @@
         var kaydirma = (1 - state.t) * (W * 0.8);
         ctx.fillStyle = renk || "#fff";
         ctx.font = "bold " + boyut + "px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(metin, x - kaydirma, y);
       },
       yukariCik: function (metin, x, y, boyut, renk) {
@@ -647,38 +585,27 @@
         var kaydirma = (1 - state.t) * (H * 0.4);
         ctx.fillStyle = renk || "#fff";
         ctx.font = "bold " + boyut + "px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(metin, x, y + kaydirma);
       },
       golge: function (renk, blur, xo, yo) {
-        ctx.shadowColor = renk || "#000";
-        ctx.shadowBlur = blur || 10;
-        ctx.shadowOffsetX = xo || 0;
-        ctx.shadowOffsetY = yo || 0;
+        ctx.shadowColor = renk || "#000"; ctx.shadowBlur = blur || 10;
+        ctx.shadowOffsetX = xo || 0; ctx.shadowOffsetY = yo || 0;
       },
       golgeKapat: function () {
-        ctx.shadowColor = "transparent";
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
+        ctx.shadowColor = "transparent"; ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
       },
-      bulanikla: function (miktar) {
-        ctx.filter = "blur(" + (miktar || 5) + "px)";
-      },
+      bulanikla: function (miktar) { ctx.filter = "blur(" + (miktar || 5) + "px)"; },
       siyahBeyaz: function () { ctx.filter = "grayscale(1)"; },
       sepya: function () { ctx.filter = "sepia(1)"; },
       filtreKapat: function () { ctx.filter = "none"; },
       titre: function (miktar) {
         miktar = miktar || 3;
-        ctx.translate(
-          (Math.random() - 0.5) * miktar,
-          (Math.random() - 0.5) * miktar
-        );
+        ctx.translate((Math.random() - 0.5) * miktar, (Math.random() - 0.5) * miktar);
       },
       parcacik: function (x, y, sayi, renk, boyut) {
-        sayi = sayi || 20;
-        boyut = boyut || 3;
+        sayi = sayi || 20; boyut = boyut || 3;
         ctx.fillStyle = renk || "#fff";
         for (var i = 0; i < sayi; i++) {
           var seed = i * 12.9898;
@@ -687,21 +614,19 @@
           var px = x + Math.cos(a) * r;
           var py = y + Math.sin(a) * r;
           var b = Math.abs(Math.sin(seed * 3) * 43758.5453 % 1) * boyut + 1;
-          ctx.beginPath();
-          ctx.arc(px, py, b, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(px, py, b, 0, Math.PI * 2); ctx.fill();
         }
       },
       renk: function (isim) {
         var paletler = {
-          neon:     ["#00fff0", "#ff00e6", "#a200ff", "#00ff89", "#fff200"],
-          gunbatimi:["#ff6b35", "#f7931e", "#ffd23f", "#ee4266", "#3d1e6d"],
-          okyanus:  ["#001f3f", "#0074d9", "#39cccc", "#7fdbff", "#b5e7ff"],
-          ates:     ["#ff0000", "#ff4500", "#ff6b35", "#ffa500", "#ffd700"],
-          orman:    ["#1b4332", "#2d6a4f", "#40916c", "#52b788", "#95d5b2"],
-          pastel:   ["#ffd6e0", "#ffefcf", "#d4f1f4", "#e0d4f4", "#d4f4e4"],
-          gece:     ["#0a0c12", "#131722", "#1a1f2e", "#232838", "#6c8cff"],
-          altin:    ["#b8860b", "#daa520", "#ffd700", "#ffed4e", "#fff8dc"]
+          neon: ["#00fff0", "#ff00e6", "#a200ff", "#00ff89", "#fff200"],
+          gunbatimi: ["#ff6b35", "#f7931e", "#ffd23f", "#ee4266", "#3d1e6d"],
+          okyanus: ["#001f3f", "#0074d9", "#39cccc", "#7fdbff", "#b5e7ff"],
+          ates: ["#ff0000", "#ff4500", "#ff6b35", "#ffa500", "#ffd700"],
+          orman: ["#1b4332", "#2d6a4f", "#40916c", "#52b788", "#95d5b2"],
+          pastel: ["#ffd6e0", "#ffefcf", "#d4f1f4", "#e0d4f4", "#d4f4e4"],
+          gece: ["#0a0c12", "#131722", "#1a1f2e", "#232838", "#6c8cff"],
+          altin: ["#b8860b", "#daa520", "#ffd700", "#ffed4e", "#fff8dc"]
         };
         var p = paletler[(isim || "").toLowerCase()] || paletler.neon;
         return p.slice();
@@ -739,7 +664,6 @@
     );
   }
 
-  /* ==================== RESİM ÖN YÜKLEME ==================== */
   async function resimleriOnYukle(code) {
     var re = /resim\s*\(\s*['"]([^'"]+)['"]/g;
     var m;
@@ -750,11 +674,9 @@
         var img = new Image();
         img.crossOrigin = "anonymous";
         img.onerror = function () { img.__hata = true; };
-        img.src = url;
-        imgCache[url] = img;
+        img.src = url; imgCache[url] = img;
         promises.push(new Promise(function (resolve) {
-          img.onload = resolve;
-          img.onerror = resolve;
+          img.onload = resolve; img.onerror = resolve;
           setTimeout(resolve, 5000);
         }));
       })(m[1]);
@@ -762,42 +684,34 @@
     return Promise.all(promises);
   }
 
-  /* ==================== WATERMARK ==================== */
   function watermarkCiz(globalElapsedMs, toplamMs) {
     var kalanMs = toplamMs - globalElapsedMs;
     if (kalanMs < 0) return;
     var gostermeSuresi = Math.min(WATERMARK_MS, toplamMs);
     if (kalanMs > gostermeSuresi) return;
-
     var elapsedSn = globalElapsedMs / 1000;
     var alpha = 0.42 + Math.sin(elapsedSn * 5) * 0.08;
     var boyut = Math.round(Math.min(W, H) * 0.11);
     if (boyut < 32) boyut = 32;
-
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.shadowColor = "#000";
     ctx.shadowBlur = Math.round(boyut * 0.25);
     ctx.fillStyle = "#00d9ff";
     ctx.font = "bold " + boyut + "px system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("OsCodeVideo", W / 2, H / 2);
     ctx.restore();
   }
 
   function drawIdle() {
     if (!ctx) return;
-    ctx.fillStyle = "#0a0c12";
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = "#232838";
-    ctx.font = "bold 42px system-ui";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#0a0c12"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#232838"; ctx.font = "bold 42px system-ui";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("🎬 Önizleme", W / 2, H / 2);
   }
 
-  /* ==================== iOS ==================== */
   function isIOS() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -815,55 +729,36 @@
     return "";
   }
 
-  /* ==================== ÜRETİM ==================== */
   var iptalEdildi = false;
-
   if (cancelBtn) {
-    cancelBtn.addEventListener("click", function () {
-      iptalEdildi = true;
-    });
+    cancelBtn.addEventListener("click", function () { iptalEdildi = true; });
   }
 
   async function uret() {
     if (!codeInput || !canvas || !ctx) return;
-
     var raw = codeInput.value.trim();
     if (!raw) { addBotMessage("⚠️ Kod boş.", "err"); return; }
 
     var analiz = parseSahneler(raw);
-    if (analiz.sahneler.length === 0) {
-      addBotMessage("⚠️ Geçerli sahne bulunamadı.", "err"); return;
-    }
-    if (analiz.toplamSure < 1) {
-      addBotMessage("⚠️ Toplam süre en az 1 saniye olmalı.", "err"); return;
-    }
-    if (analiz.toplamSure > MAX_SURE) {
-      addBotMessage("⚠️ Toplam süre " + MAX_SURE + " saniyeyi geçemez.", "err");
-      return;
-    }
+    if (analiz.sahneler.length === 0) { addBotMessage("⚠️ Geçerli sahne yok.", "err"); return; }
+    if (analiz.toplamSure < 1) { addBotMessage("⚠️ Süre en az 1 sn olmalı.", "err"); return; }
+    if (analiz.toplamSure > MAX_SURE) { addBotMessage("⚠️ Süre " + MAX_SURE + " sn'yi geçemez.", "err"); return; }
 
     var derlenmis = [];
     for (var i = 0; i < analiz.sahneler.length; i++) {
       try {
-        derlenmis.push({
-          fn: compile(analiz.sahneler[i].code),
-          duration: analiz.sahneler[i].duration
-        });
+        derlenmis.push({ fn: compile(analiz.sahneler[i].code), duration: analiz.sahneler[i].duration });
       } catch (e) {
-        addBotMessage("❌ Sahne " + (i+1) + " kod hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
+        addBotMessage("❌ Sahne " + (i+1) + " hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
         return;
       }
     }
 
-    if (typeof MediaRecorder === "undefined") {
-      addBotMessage("❌ Tarayıcın video kaydını desteklemiyor.", "err"); return;
-    }
-    if (!canvas.captureStream) {
-      addBotMessage("❌ Tarayıcın canvas kaydını desteklemiyor.", "err"); return;
-    }
+    if (typeof MediaRecorder === "undefined") { addBotMessage("❌ Tarayıcın MediaRecorder desteklemiyor.", "err"); return; }
+    if (!canvas.captureStream) { addBotMessage("❌ Tarayıcın canvas kaydını desteklemiyor.", "err"); return; }
 
     var mime = pickMime();
-    if (!mime) { addBotMessage("❌ Uygun format bulunamadı.", "err"); return; }
+    if (!mime) { addBotMessage("❌ Uygun format yok.", "err"); return; }
     var ext = mime.indexOf("mp4") >= 0 ? "mp4" : "webm";
 
     iptalEdildi = false;
@@ -878,8 +773,6 @@
     generateBtn.textContent = "⚡ Üretiliyor...";
 
     var sahneSayisi = derlenmis.length;
-
-    // AudioContext'i başlat
     sesKur();
 
     var m1;
@@ -894,37 +787,27 @@
         'yükleniyor...');
 
       if (resimVar) await resimleriOnYukle(raw);
-      if (sesVar) {
-        var sesAdet = await sesleriOnYukle(raw);
-        if (sesAdet > 0) {
-          updateMessage(m1, "🖼️🔊 Hazırlık tamam ✓ <small>(" + sesAdet + " ses yüklendi)</small>");
-        } else {
-          updateMessage(m1, "🖼️ Hazırlık tamam ✓ <small>(ses yüklenemedi, sessiz devam edilecek)</small>");
-        }
-      } else {
-        updateMessage(m1, "🖼️ Hazırlık tamam ✓");
-      }
+      if (sesVar) await sesleriOnYukle(raw);
+      updateMessage(m1, "Hazırlık tamam ✓");
     } else {
-      m1 = addBotMessage('<span class="spinner"></span> 📥 ' + sahneSayisi + ' sahne analiz ediliyor...');
-      await sleep(300);
-      updateMessage(m1, "📥 " + sahneSayisi + " sahne analiz edildi ✓");
+      m1 = addBotMessage('<span class="spinner"></span> 📥 Analiz ediliyor...');
+      await sleep(250);
+      updateMessage(m1, "📥 Analiz tamam ✓");
     }
 
     if (iptalEdildi) { uretimBitti(); return; }
 
-    var m2 = addBotMessage('<span class="spinner"></span> 🎨 Sahne hazırlanıyor...');
+    var m2 = addBotMessage('<span class="spinner"></span> 🎨 Sahne kuruluyor...');
     await sleep(250);
     updateMessage(m2, "🎨 Sahne hazır ✓");
 
     if (iptalEdildi) { uretimBitti(); return; }
 
-    var m3 = addBotMessage('<span class="spinner"></span> 🏃 Animasyon oynatılıyor...<div class="mini-bar"><div></div></div>');
+    var m3 = addBotMessage('<span class="spinner"></span> 🏃 Animasyon...<div class="mini-bar"><div></div></div>');
     var miniFill = m3 ? m3.querySelector(".mini-bar > div") : null;
 
     state.seslendirilenler = {};
-
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
     state.t = 0;
     try {
       derlenmis[0].fn(ctx, 0, 0, derlenmis[0].duration, W, H, makeHelpers());
@@ -935,22 +818,16 @@
 
     await sleep(200);
 
-    // Ses varsa ses trackini de ekle
     var stream, rec;
     try {
       var canvasStream = canvas.captureStream(FPS);
       var tracks = [];
-
       canvasStream.getVideoTracks().forEach(function (t) { tracks.push(t); });
-
-      if (sesDest) {
-        sesDest.stream.getAudioTracks().forEach(function (t) { tracks.push(t); });
-      }
-
+      if (sesDest) sesDest.stream.getAudioTracks().forEach(function (t) { tracks.push(t); });
       stream = new MediaStream(tracks);
       rec = new MediaRecorder(stream, { mimeType: mime });
     } catch (e) {
-      updateMessage(m3, "❌ MediaRecorderort hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
+      updateMessage(m3, "❌ MediaRecorder hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
       uretimBitti(); progressBar.hidden = true; return;
     }
 
@@ -966,10 +843,9 @@
       }, toplamMs + 20000);
 
       rec.onstop = function () {
-        clearTimeout(killer);
-        stopped = true;
+        clearTimeout(killer); stopped = true;
         if (iptalEdildi) { reject(new Error("__IPTAL__")); return; }
-        if (!chunks.length) { reject(new Error("Kayıt boş döndü. Tekrar dene.")); return; }
+        if (!chunks.length) { reject(new Error("Kayıt boş.")); return; }
         resolve(new Blob(chunks, { type: mime }));
       };
       rec.onerror = function (e) {
@@ -1000,36 +876,29 @@
         try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
         return;
       }
-
       var elapsed = performance.now() - startTime;
-      var globalT = Math.min(1, elapsed / togenplamMs);
+      var globalT = Math.min(1, elapsed / toplamMs);
       var hs = hangiSahne(elapsed);
       state.t = Math.max(0, Math.min(1, hs.localT));
 
-      ctx.fillStyle = "#(x000";
-      ctx.fillRect(0, 0, W, H);
-
+      ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
       try {
-        derlenmis[hs.idx].fn(ctx, state.t, frameNo,++, derlenmis[hs.idx].duration, W, H, helpers);
+        derlenmis[hs.idx].fn(ctx, state.t, frameNo++, derlenmis[hs.idx].duration, W, H, helpers);
       } catch (e) {
-        try { y if (rec.state !== "inactive") rec.stop(); } catch (x) {}
-        updateMessage(m3, "❌, Sahne " + (hs.idx+1) + " hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
+        try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
+        updateMessage(m3, "❌ Sahne " + (hs.idx+1) + " hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
         uretimBitti(); progressBar.hidden = true; return;
       }
-
       watermarkCiz(elapsed, toplamMs);
 
       var pct = Math.round(globalT * 100);
       progressFill.style.width = pct + "%";
       if (miniFill) miniFill.style.width = pct + "%";
       var kalan = Math.max(0, Math.ceil(analiz.toplamSure - elapsed / 1000));
-
       var sahneEtiket = sahneSayisi > 1 ? " [Sahne " + (hs.idx+1) + "/" + sahneSayisi + "]" : "";
-      var wmEtiket = (toplamMs - elapsed) <= WATERMARK_MS ? " <small>🔷</small>" : "";
       var sesEtiket = (sesKaynaklari.length > 0) ? " <small>🔊</small>" : "";
       updateMessage(m3,
-        "🏃 Animasyon oynatılıyor" + sahneEtiket + "... %" + pct +
-        " <small>(~" + kalan + " sn)</small>" + wmEtiket + sesEtiket +
+        "🏃 Animasyon" + sahneEtiket + "... %" + pct + " <small>(~" + kalan + " sn)</small>" + sesEtiket +
         '<div class="mini-bar"><div style="width:' + pct + '%"></div></div>'
       );
       generateBtn.textContent = "⚡ Üretiliyor... %" + pct;
@@ -1049,7 +918,7 @@
     catch (e) {
       sesleriDurdur();
       if (e.message === "__IPTAL__") {
-        updateMessage(m3, "🛑 Üretim durduruldu.", "");
+        updateMessage(m3, "🛑 Durduruldu.", "");
         toastGoster("🛑 Üretim durduruldu");
       } else {
         updateMessage(m3, "❌ " + escapeHtml(e.message), "err");
@@ -1058,7 +927,7 @@
     }
 
     sesleriDurdur();
-    updateMessage(m3, "🏃 Animasyon tamamlandı ✓");
+    updateMessage(m3, "🏃 Tamamlandı ✓");
 
     var m4 = addBotMessage('<span class="spinner"></span> 💾 Video işleniyor...');
     await sleep(300);
@@ -1074,15 +943,9 @@
 
     updateMessage(m4,
       "✅ Video hazır! <small>(" + analiz.toplamSure.toFixed(1) + " sn • " +
-      (blob.size / 1024 / 1024).toFixed(2) + " MB • ." + ext + ")</small>",
-      "ok"
+      (blob.size / 1024 / 1024).toFixed(2) + " MB • ." + ext + ")</small>", "ok"
     );
-    if (sesVar) {
-      addBotMessage("🔊 <b>Seslendirme</b> videoya gömüldü.", "ok");
-    }
-    addBotMessage("🔷 Son 5 saniyeye <b>OsCodeVideo</b> imzası otomatik gömüldü.", "ok");
     addBotMessage("İndirmek için alttaki ⬇️ butonuna bas.", "ok");
-
     uretimBitti();
   }
 
@@ -1100,5 +963,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("✅ OsCodeVideo hazır (v18 - TTS)");
+  console.log("✅ OsCodeVideo hazır (v21 - TTS)");
 })();
