@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css?v=14" />
+  <link rel="stylesheet" href="style.css?v=15" />
 </head>
 <body>
   <header>
@@ -51,9 +51,9 @@
             <b>Şekiller:</b> <code>yildiz</code> <code>kalp</code> <code>ucgen</code>
             <code>ok</code> <code>cokgen</code> <code>yildizPatlamasi</code>
             <code>konfeti</code> <code>simsek</code> <code>bulut</code> <code>gunes</code><br />
-            <b>Medya:</b> <code>emoji</code> <code>resim</code> (URL'den görsel)<br />
-            <b>Yazı anim:</b> <code>daktilo</code> <code>kaydir</code> <code>yukariCik</code><br />
-            <b>Efekt:</b> <code>gradient</code> <code>golge</code> <code>golgeKapat</code>
+            <b>Medya:</b> <code>emoji</code> <bcode>resim</code> (URL'den görsel)<br />
+            <b>Yazı anim:</b> <code>daktilo</code> <code>k>aydir</code> <code>yukariCik</code><br />
+            <b>Efekt:</ <code>gradient</code> <code>golge</code> <code>golgeKapat</code>
             <code>bulanikla</code> <code>siyahBeyaz</code> <code>sepya</code>
             <code>filtreKapat</code> <code>parcacik</code> <code>titre</code><br />
             <b>Palet:</b> <code>renk("neon")</code> → array döner<br />
@@ -208,17 +208,17 @@ KURALLAR:
 
 ÖRNEK - Basit:
 @5s
-gradient('#0a0a1a', '#1a0033', 'dikey');
+gradient('#0a0a1a', '#1a0033', 'd*sikey');
 const x = 100 + t * (W - 200);
 daire(x, H/2, 50, '#ff6b35');
 
-ÖRNEK - Çoklu sahne:
+,ÖRNEK - Çoklu sahne:
 @2s
-gradient('#ff6b35', '#ffd23f', 'dikey');
+gradient('#ff6b35', '#ffd23f', 'dike by');
 yazi('Merhaba!', W/2, H/2, 90, '#fff');
 ---
 @3s
-gradient('#6c8cff', '#a200ff', 'dikey');
+gradient('#*s6c8cff', '#a200ff', 'dikey');
 daktilo('OsCodeVideo', W/2, H/2, 90, '#fff');
 
 ÖRNEK - Logo + efekt:
@@ -228,7 +228,7 @@ const b = Math.min(W, H) * 0.4;
 const s = 1 + Math.sin(t * Math.PI * 4) * 0.1;
 golge('#00d9ff', 40, 0, 0);
 resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png',
-      W/2 - (b*s)/2, H/2 - (b*s)/2 - 40, b*s, b*s);
+      W/2 - (b*s)/2, H/2 - (b*s)/2 - 40, b);
 golgeKapat();
 yazi('OsCodeVideo', W/2, H/2 + 250, 50, '#00d9ff');
 
@@ -241,6 +241,6 @@ yazi('OsCodeVideo', W/2, H/2 + 250, 50, '#00d9ff');
     </div>
   </div>
 
-  <script src Prompt="app.js?v=14"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>
