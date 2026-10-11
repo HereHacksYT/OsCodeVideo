@@ -32,7 +32,8 @@
   var howBtn       = $("howBtn");
   var cancelBtn    = $("cancelBtn");
   var themeBtn     = $("themeBtn");
-  var colorPicker  = $("colorPicker");
+  var resimUrl     = $("resimUrl");
+  var resimTestBtn = $("resimTestBtn");
   var canvas       = $("renderCanvas");
   var previewVideo = $("previewVideo");
   var resultSec    = $("resultSection");
@@ -43,6 +44,9 @@
   var progressFill = $("progressFill");
   var sureBilgi    = $("sureBilgi");
   var stage        = document.querySelector(".stage");
+  var toast        = $("toast");
+  var toastMsg     = $("toastMsg");
+  var toastUndo    = $("toastUndo");
 
   var howModal     = $("howModal");
   var modalClose   = $("modalClose");
@@ -68,6 +72,31 @@
       temaUygula(yeni);
       try { localStorage.setItem(LS_TEMA, yeni); } catch (e) {}
     });
+  }
+
+  /* ==================== TOAST ==================== */
+  var toastTimer = null;
+  function toastGoster(mesaj, undoFn) {
+    if (!toast) return;
+    toastMsg.textContent = mesaj;
+    toast.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+
+    if (undoFn && toastUndo) {
+      toastUndo.style.display = "";
+      toastUndo.onclick = function () {
+        undoFn();
+        toastGizle();
+      };
+    } else if (toastUndo) {
+      toastUndo.style.display = "none";
+    }
+
+    toastTimer = setTimeout(toastGizle, 5000);
+  }
+  function toastGizle() {
+    if (toast) toast.classList.remove("show");
+    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
   }
 
   /* ==================== MODAL ==================== */
@@ -125,33 +154,100 @@
     });
   }
 
-  /* ==================== EDİTÖR ARAÇLARI ==================== */
-  function insertAtCursor(text) {
-    if (!codeInput) return;
-    var start = codeInput.selectionStart;
-    var end = codeInput.selectionEnd;
-    var val = codeInput.value;
-    codeInput.value = val.slice(0, start) + text + val.slice(end);
-    codeInput.selectionStart = codeInput.selectionEnd = start + text.length;
-    codeInput.focus();
-    kodKaydet();
-    sureGuncelle();
-  }
+  /* ==================== RESİM TEST ==================== */
+  if (resimTestBtn && resimUrl) {
+    resimTestBtn.addEventListener("click", function () {
+      var url = resimUrl.value.trim();
+      if (!url) {
+        toastGoster("⚠️ Önce bir URL gir");
+        return;
+      }
+      resimTestBtn.disabled = true;
+      resimTestBtn.textContent = "⏳ Test ediliyor...";
 
-  if (colorPicker) {
-    colorPicker.addEventListener("input", function () {
-      insertAtCursor("'" + colorPicker.value + "'");
+      // Chat'e mesaj ekle
+      clearVideoChat();
+      var m = addBotMessage('<span class="spinner"></span> 🖼️ Resim test ediliyor...');
+
+      var img = new Image();
+      img.crossOrigin = "anonymous";
+      var bitti = false;
+
+      var zamanAsimi = setTimeout(function () {
+        if (bitti) return;
+        bitti = true;
+        updateMessage(m, "❌ <b>Zaman aşımı</b> — Resim 8 saniyede yüklenmedi. URL doğru mu?", "err");
+        resimTestBtn.disabled = false;
+        resimTestBtn.textContent = "🔍 Test Et";
+      }, 8000);
+
+      img.onload = function () {
+        if (bitti) return;
+        bitti = true;
+        clearTimeout(zamanAsimi);
+
+        // Canvas'a çizip taint kontrolü yap
+        try {
+          var testCanvas = document.createElement("canvas");
+          testCanvas.width = 4; testCanvas.height = 4;
+          var tc = testCanvas.getContext("2d");
+          tc.drawImage(img, 0, 0, 4, 4);
+          testCanvas.toDataURL(); // taint kontrolü
+
+          // Boyutları al
+          var bw = img.naturalWidth;
+          var bh = img.naturalHeight;
+
+          // Stage'de önizleme göster
+          ctx.fillStyle = "#0a0c12";
+          ctx.fillRect(0, 0, W, H);
+          var maxBoyut = Math.min(W, H) * 0.8;
+          var oran = bw / bh;
+          var cw = maxBoyut, ch = maxBoyut;
+          if (oran > 1) { ch = maxBoyut / oran; } else { cw = maxBoyut * oran; }
+          ctx.drawImage(img, (W - cw) / 2, (H - ch) / 2, cw, ch);
+
+          // Önizlemeyi göster
+          if (previewVideo) previewVideo.hidden = true;
+          if (canvas) canvas.style.display = "block";
+          if (resultSec) resultSec.hidden = true;
+
+          updateMessage(m,
+            "✅ <b>Resim başarıyla yüklendi!</b><br>" +
+            "<small>📐 Boyut: " + bw + "×" + bh + " px<br>" +
+            "🔒 CORS: Destekleniyor (videoda kullanılabilir)<br>" +
+            "👁️ Önizleme yukarıda gösteriliyor</small>",
+            "ok"
+          );
+        } catch (err) {
+          updateMessage(m,
+            "⚠️ <b>Resim yüklendi ama CORS engeli var.</b><br>" +
+            "<small>Yani önizlemede görünür ama <b>videoya kaydedilemez</b>.<br>" +
+            "Çözüm: Resmi CORS destekleyen bir yere yükle (imgur, i.ibb.co vb.)<br>" +
+            "Hata: <code>" + escapeHtml(err.message) + "</code></small>",
+            "err"
+          );
+        }
+
+        resimTestBtn.disabled = false;
+        resimTestBtn.textContent = "🔍 Test Et";
+      };
+
+      img.onerror = function () {
+        if (bitti) return;
+        bitti = true;
+        clearTimeout(zamanAsimi);
+        updateMessage(m,
+          "❌ <b>Resim yüklenemedi</b><br>" +
+          "<small>URL yanlış, erişilemiyor veya engellenmiş olabilir.</small>",
+          "err"
+        );
+        resimTestBtn.disabled = false;
+        resimTestBtn.textContent = "🔍 Test Et";
+      };
+
+      img.src = url;
     });
-  }
-
-  var emojiBtns = $$("[data-emoji]");
-  for (var emi = 0; emi < emojiBtns.length; emi++) {
-    (function (btn) {
-      btn.addEventListener("click", function () {
-        var e = btn.getAttribute("data-emoji");
-        insertAtCursor("emoji('" + e + "', W/2, H/2, 100);");
-      });
-    })(emojiBtns[emi]);
   }
 
   /* ==================== BOYUT SEÇİCİ ==================== */
@@ -201,25 +297,15 @@
 
   /* ==================== ÖRNEKLER ==================== */
   var ORNEKLER = [
-    // 0 - Top
     "@5s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nconst x = 100 + t * (W - 200);\nda里(x, H/2, 50, '#ff6b35');",
-    // 1 - Gradient
     "@4s\ngradient('#ff6b35', '#6c8cff', 'capraz');\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.15;\nkalp(W/2, H/2 - 50, 200 * s, '#fff');",
-    // 2 - Parçacık
     "@4s\narkaplan('#0a0a1a');\nparcacik(W/2, H/2, 60, '#00d9ff', 4);\nparcacik(W/2, H/2, 30, '#ff6b35', 6);",
-    // 3 - Gölge
     "@4s\narkaplan('#0f1117');\ngolge('#00d9ff', 30, 0, 0);\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.15;\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\ngolgeKapat();",
-    // 4 - Filtre
     "@3s\ngradient('#ff6b35', '#6c8cff', 'capraz');\nyazi('Net', W/2, H/2 - 100, 60, '#fff');\nbulanikla(10);\nyazi('Bulanık', W/2, H/2 + 100, 60, '#fff');\nfiltreKapat();",
-    // 5 - Konfeti
     "@4s\narkaplan('#0f1117');\nkonfeti(W/2, H/2, 60, 12);\nyildizPatlamasi(W/2, H/2, 200, '#ffd700');",
-    // 6 - Şimşek
     "@2s\narkaplan('#0a0a1a');\nsimsek(200, 100, W - 200, H - 100, '#fff200', 6);\nyildizPatlamasi(W/2, H/2, 100, '#fff');",
-    // 7 - Logo (URL'den resim)
     "@5s\narkaplan('#0f1117');\nconst b = Math.min(W, H) * 0.55;\nresim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - b/2, H/2 - b/2, b, b);",
-    // 8 - Çoklu Sahne
     "@2s\ngradient('#ff6b35', '#ffd23f', 'dikey');\nyazi('Merhaba!', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#6c8cff', '#a200ff', 'dikey');\nyazi('OsCodeVideo', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#22c55e', '#16a34a', 'dikey');\nyazi('Hoş geldin!', W/2, H/2, 90, '#fff');",
-    // 9 - Daktilo
     "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d9ff');"
   ];
 
@@ -263,12 +349,24 @@
     });
   }
 
-  if (clearBtn) {
+  /* ==================== TEMİZLE (Geri Al ile) ==================== */
+  if (clearBtn && codeInput) {
     clearBtn.addEventListener("click", function () {
-      if (!confirm("Kodu temizlemek istediğine emin misin?")) return;
+      var eskiKod = codeInput.value;
+      if (!eskiKod || eskiKod.trim() === "@5s") {
+        toastGoster("⚠️ Zaten boş");
+        return;
+      }
+
       codeInput.value = "@5s\n";
       kodKaydet();
       sureGuncelle();
+
+      toastGoster("🗑️ Kod temizlendi", function () {
+        codeInput.value = eskiKod;
+        kodKaydet();
+        sureGuncelle();
+      });
     });
   }
 
@@ -645,7 +743,7 @@
     var promises = [];
     while ((m = re.exec(code)) !== null) {
       (function (url) {
-        if (imgCache[url]) return;
+        if (imgCache[url] && imgCache[url].complete) return;
         var img = new Image();
         img.crossOrigin = "anonymous";
         img.onerror = function () { img.__hata = true; };
@@ -777,7 +875,6 @@
 
     var sahneSayisi = derlenmis.length;
 
-    // Resim ön yükleme
     var resimVar = /resim\s*\(/.test(raw);
     var m1;
     if (resimVar) {
@@ -916,6 +1013,7 @@
     catch (e) {
       if (e.message === "__IPTAL__") {
         updateMessage(m3, "🛑 Üretim durduruldu.", "");
+        toastGoster("🛑 Üretim durduruldu");
       } else {
         updateMessage(m3, "❌ " + escapeHtml(e.message), "err");
       }
@@ -961,5 +1059,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("✅ OsCodeVideo hazır (v12)");
+  console.log("✅ OsCodeVideo hazır (v13)");
 })();
