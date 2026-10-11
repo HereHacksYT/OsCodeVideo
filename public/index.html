@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo</title>
-  <link rel="stylesheet" href="style.css?v=25" />
+  <link rel="stylesheet" href="style.css?v=26" />
 </head>
 <body>
   <header>
@@ -52,6 +52,7 @@
             <code>ok</code> <code>cokgen</code> <code>yildizPatlamasi</code>
             <code>konfeti</code> <code>simsek</code> <code>bulut</code> <code>gunes</code><br />
             <b>Medya:</b> <code>emoji</code> <code>resim</code> <code>seslendir</code><br />
+            <b>Ses:</b> <code>muzik</code> 🎵<br />
             <b>Yazı:</b> <code>daktilo</code> <code>kaydir</code> <code>yukariCik</code><br />
             <b>Efekt:</b> <code>golge</code> <code>bulanikla</code> <code>parcacik</code>
             <code>titre</code><br />
@@ -82,6 +83,7 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
           <button data-ex="8">Çoklu Sahne</button>
           <button data-ex="9">Daktilo</button>
           <button data-ex="10">🎤 Konuşma</button>
+          <button data-ex="11">🎵 Şarkı</button>
         </div>
         <div class="action-buttons">
           <button id="clearBtn" class="ghost">🗑️ Temizle</button>
@@ -146,12 +148,29 @@ MEDYA:
 - emoji("🚀", x, y, boyut)
 - resim(url, x, y, w, h) - URL CORS desteklemeli
 
-SESLENDİRME:
+SES:
+- muzik("do re mi", 120, true)
+  1. parametre: notalar (boşlukla ayrılmış)
+  2. parametre: BPM hızı (varsayılan 120)
+  3. parametre: true ise döngüde çalar (video bitene kadar)
+  
+  Notalar: do re mi fa sol la si
+  İnce oktav için: do2 re2 mi2 fa2 sol2 la2 si2
+  Pes oktav için: do3 re3 mi3
+  İngilizce de çalışır: C4 D4 E4 F4 G4 A4 B4 / C5 D5 E5
+  Sus (sessizlik) için: sus
+  
+  Örnek melodiler:
+  - Doğum günü: muzik('sol sol la sol do2 si', 100)
+  - Gam: muzik('do re mi fa sol la si do2', 120)
+  - Hüzünlü: muzik('la la do2 la mi2', 90)
+  - Neşeli: muzik('do mi sol do2 sol mi do', 140, true)
+  - Arpej döngü: muzik('do mi sol do2', 120, true)
+
 - seslendir("Metin", "tr")
-- yazi() SESSIZDIR, sadece goruntu verir
-- Diller: tr, en, de, fr, es, it, ru, ar, ja, ko, zh
-- Metin 200 karakteri gecmesin
-- Ornek: seslendir('Merhaba dunya!', 'tr');
+  Belirtilen metni sese çevirir (yazi() SESSIZDIR)
+  Diller: tr, en, de, fr, es, it, ru, ar, ja, ko, zh
+  Metin 200 karakteri geçmesin
 
 YAZI ANİMASYONLARI:
 - daktilo(metin, x, y, boyut, renk)
@@ -178,13 +197,28 @@ KURALLAR:
 - Çoklu sahne için --- satırı ile böl
 - Renkleri hex ('#ff6b35') yaz
 - Metin ortalamak için x = W/2, y = H/2
+- Müzik için sadece do re mi notaları kullan
 
-ÖRNEK:
+ÖRNEK 1 - Basit:
 @5s
 gradient('#0a0a1a', '#1a0033', 'dikey');
-seslendir('Merhaba!', 'tr');
 const x = 100 + t * (W - 200);
 daire(x, H/2, 50, '#ff6b35');
+
+ÖRNEK 2 - Müzikli:
+@6s
+gradient('#0a0a1a', '#1a0033', 'dikey');
+muzik('do mi sol do2', 120, true);
+const s = 1 + Math.sin(t * Math.PI * 4) * 0.1;
+yildiz(W/2, H/2, 150 * s, 5, '#00d9ff');
+yazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');
+
+ÖRNEK 3 - Doğum günü:
+@8s
+gradient('#ff6b35', '#ffd23f', 'dikey');
+muzik('sol sol la sol do2 si', 100, true);
+konfeti(W/2, H/2, 80, 15);
+yazi('Mutlu Yillar!', W/2, H/2, 80, '#fff');
 
 Şimdi benim için şu videoyu yap: [ISTEGINI YAZ]</pre>
       </div>
@@ -194,6 +228,6 @@ daire(x, H/2, 50, '#ff6b35');
     </div>
   </div>
 
-  <script src="app.js?v=25"></script>
+  <script src="app.js?v=26"></script>
 </body>
 </html>
