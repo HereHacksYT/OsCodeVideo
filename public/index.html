@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
   <header>
@@ -12,98 +12,55 @@
     <span class="tagline">koddan video üret</span>
   </header>
 
-  <nav class="tabs">
-    <button class="tab active" data-tab="video">🎬 Video</button>
-    <button class="tab" data-tab="converter">🔄 Dönüştürücü</button>
-  </nav>
-
   <main>
-    <section class="page" id="pageVideo">
-      <section class="stage">
-        <canvas id="renderCanvas"></canvas>
-        <video id="previewVideo" controls playsinline hidden></video>
-        <div class="progress-bar" id="progressBar" hidden>
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-      </section>
-
-      <section class="="chat" id="chatLog">
-        <div class="bot-msg" id="welcomeMsg">
-          <div classavatar">🤖</div>
-          <div class="bubble">
-            Merhaba! Kodunu yaz, sana video yapayım.<br />
-            <small>
-              <code>t</code> değişkeni 0'dan 1'e gider.<br />
-              <code>daire(x,y,r,renk)</code>
-              <code>dikdortgen(x,y,w,h,renk)</code>
-              <code>yazi(metin,x,y,boyut,renk)</code>
-              <code>cizgi(x1,y1,x2,y2,renk,kalinlik)</code>
-              <code>arkaplan(renk)</code><br />
-              Süre: en üste <code>@5s</code> yaz (max 30 sn).
-            </small>
-          </div>
-        </div>
-      </section>
-
-      <section class="input-area">
-        <textarea id="codeInput" spellcheck="false">@5s
-const x = 100 + t * 900;
-daire(x, 360, 50, "#ff6b35");</textarea>
-        <div class="actions">
-          <div class="examples">
-            <span>Örnekler:</span>
-            <button data-ex="0">Top</button>
-            <button data-ex="1">Zıplayan</button>
-            <button data-ex="2">Yazı</button>
-            <button data-ex="3">Renk</button>
-            <button data-ex="4">Kare</button>
-          </div>
-          <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
-        </div>
-      </section>
-
-      <section class="result" id="resultSection" hidden>
-        <a id="downloadBtn" class="primary download" download>⬇️ Videoyu İndir</a>
-      </section>
+    <section class="stage">
+      <canvas id="renderCanvas"></canvas>
+      <video id="previewVideo" controls playsinline hidden></video>
+      <div class="progress-bar" id="progressBar" hidden>
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
     </section>
 
-    <section class="page" id="pageConverter" hidden>
-      <section class="stage converter-stage" id="dropZone">
-        <div class="drop-inner">
-          <div class="drop-icon">📁</div>
-          <p class="drop-title" id="dropTitle">WebM dosyanı buraya bırak</p>
-          <p class="drop-sub" id="dropSub">veya tıkla ve seç</p>
+    <section class="chat" id="chatLog">
+      <div class="bot-msg" id="welcomeMsg">
+        <div class="avatar">🤖</div>
+        <div class="bubble">
+          Merhaba! Kodunu yaz, sana video yapayım.<br />
+          <small>
+            <code>t</code> değişkeni 0'dan 1'e gider.<br />
+            <code>daire(x,y,r,renk)</code>
+            <code>dikdortgen(x,y,w,h,renk)</code>
+            <code>yazi(metin,x,y,boyut,renk)</code>
+            <code>cizgi(x1,y1,x2,y2,renk,kalinlik)</code>
+            <code>arkaplan(renk)</code><br />
+            Süre: en üste <code>@5s</code> yaz (max 30 sn).
+          </small>
         </div>
-        <input type="file" id="fileInput" accept="video/webm,.webm" hidden />
-      </section>
+      </div>
+    </section>
 
-      <section class="chat" id="convChatLog">
-        <div class="bot-msg" id="convWelcome">
-          <div class="avatar">🤖</div>
-          <div class="bubble">
-            WebM dosyanı yükle, MP4'e dönüştüreyim.<br />
-            <small>Max 100 MB. İlk seferde ~25 MB motor indirilir.</small>
-          </div>
+    <section class="input-area">
+      <textarea id="codeInput" spellcheck="false">@5s
+const x = 100 + t * 900;
+daire(x, 360, 50, "#ff6b35");</textarea>
+      <div class="actions">
+        <div class="examples">
+          <span>Örnekler:</span>
+          <button data-ex="0">Top</button>
+          <button data-ex="1">Zıplayan</button>
+          <button data-ex="2">Yazı</button>
+          <button data-ex="3">Renk</button>
+          <button data-ex="4">Kare</button>
         </div>
-      </section>
+        <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
+      </div>
+    </section>
 
-      <section class="input-area">
-        <div class="conv-info" id="convFileInfo">📭 Henüz dosya seçilmedi.</div>
-        <div class="actions">
-          <div class="examples">
-            <span>Çıktı:</span>
-            <span class="conv-target">WebM → MP4</span>
-          </div>
-          <button id="convertBtn" class="primary" disabled>🎬 MP4'e Dönüştür</button>
-        </div>
-      </section>
-
-      <section class="result" id="convResultSection" hidden>
-        <a id="convDownloadBtn" class="primary download" download>⬇️ MP4'ü İndir</a>
-      </section>
+    <section class="result" id="resultSection" hidden>
+      <a id="downloadBtn" class="primary download" download>⬇️ Videoyu İndir</a>
     </section>
   </main>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
