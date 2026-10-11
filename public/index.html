@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body>
   <header>
@@ -51,7 +51,7 @@
             <b>Şekiller:</b> <code>yildiz</code> <code>kalp</code> <code>ucgen</code>
             <code>ok</code> <code>cokgen</code> <code>yildizPatlamasi</code>
             <code>konfeti</code> <code>simsek</code> <code>bulut</code> <code>gunes</code><br />
-            <b>Medya:</b> <code>emoji</code> <code>resim</code><br />
+            <b>Medya:</b> <code>emoji</code> <code>resim</code> (URL'den görsel)<br />
             <b>Yazı anim:</b> <code>daktilo</code> <code>kaydir</code> <code>yukariCik</code><br />
             <b>Efekt:</b> <code>gradient</code> <code>golge</code> <code>golgeKapat</code>
             <code>bulanikla</code> <code>siyahBeyaz</code> <code>sepya</code>
@@ -64,12 +64,6 @@
     </section>
 
     <section class="input-area">
-      <div class="resim-test-bar">
-        <input type="text" id="resimUrl" placeholder="🖼️ Resim URL'sini buraya yapıştır ve test et..."
-               value="https://i.ibb.co/JjPFLbcP/Os-Code-Video.png" />
-        <button id="resimTestBtn" class="ghost" type="button">🔍 Test Et</button>
-      </div>
-
       <textarea id="codeInput" spellcheck="false">@5s
 gradient('#0a0a1a', '#1a0033', 'dikey');
 const x = 100 + t * (W - 200);
@@ -103,7 +97,6 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
     </section>
   </main>
 
-  <!-- Geri Al Toast -->
   <div class="toast" id="toast">
     <span id="toastMsg">Temizlendi</span>
     <button id="toastUndo" class="toast-undo">↩️ Geri Al</button>
@@ -152,9 +145,35 @@ TEMEL ÇİZİM:
 - bulut(x, y, boyut, renk)
 - gunes(x, y, yaricap, renk)
 
-MEDYA:
+MEDYA - EMOJI:
 - emoji("🚀", x, y, boyut)
-- resim("https://...", x, y, w, h)   [URL CORS desteklemeli]
+  Örnek: emoji("🔥", W/2, H/2, 120);
+
+MEDYA - RESİM (URL'den görsel gösterme):
+- resim(url, x, y, w, h)
+  Açıklama: URL'deki görseli belirtilen konum ve boyutta çizer.
+  ÖNEMLİ: URL mutlaka CORS desteklemeli, yoksa video kaydedilemez.
+  Önerilen hosting: imgur.com, i.ibb.co, cloudinary, github raw.
+
+  ÖRNEK 1 - Ortada tam boyutta:
+  @5s
+  arkaplan('#0f1117');
+  const b = Math.min(W, H) * 0.55;
+  resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png',
+        W/2 - b/2, H/2 - b/2, b, b);
+
+  ÖRNEK 2 - Köşede küçük logo (sürekli görünen):
+  @5s
+  gradient('#0a0a1a', '#1a0033', 'dikey');
+  resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png',
+        30, 30, 80, 80);
+
+  ÖRNEK 3 - Animasyonlu görsel (soldan sağa kayar):
+  @5s
+  arkaplan('#0f1117');
+  const x = 100 + t * (W - 300);
+  resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png',
+        x, H/2 - 100, 200, 200);
 
 YAZI ANİMASYONLARI:
 - daktilo(metin, x, y, boyut, renk)    [harf harf yazılır]
@@ -185,14 +204,15 @@ KURALLAR:
 - Sadece verilen fonksiyonları kullan, başka kütüphane yok
 - Renkleri hex ('#ff6b35') veya rgb('rgb(255,0,0)') olarak yaz
 - Metin ortalamak için x = W/2, y = H/2 kullan
+- Resim kullanacaksan MUTLAKA CORS destekleyen URL seç
 
-ÖRNEK 1 - Basit:
+ÖRNEK - Basit:
 @5s
 gradient('#0a0a1a', '#1a0033', 'dikey');
 const x = 100 + t * (W - 200);
 daire(x, H/2, 50, '#ff6b35');
 
-ÖRNEK 2 - Çoklu sahne:
+ÖRNEK - Çoklu sahne:
 @2s
 gradient('#ff6b35', '#ffd23f', 'dikey');
 yazi('Merhaba!', W/2, H/2, 90, '#fff');
@@ -200,6 +220,17 @@ yazi('Merhaba!', W/2, H/2, 90, '#fff');
 @3s
 gradient('#6c8cff', '#a200ff', 'dikey');
 daktilo('OsCodeVideo', W/2, H/2, 90, '#fff');
+
+ÖRNEK - Logo + efekt:
+@6s
+gradient('#0a0a1a', '#1a0033', 'capraz');
+const b = Math.min(W, H) * 0.4;
+const s = 1 + Math.sin(t * Math.PI * 4) * 0.1;
+golge('#00d9ff', 40, 0, 0);
+resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png',
+      W/2 - (b*s)/2, H/2 - (b*s)/2 - 40, b*s, b*s);
+golgeKapat();
+yazi('OsCodeVideo', W/2, H/2 + 250, 50, '#00d9ff');
 
 Şimdi benim için şu videoyu yap: [İSTEĞİNİ YAZ]</pre>
       </div>
@@ -210,6 +241,6 @@ daktilo('OsCodeVideo', W/2, H/2, 90, '#fff');
     </div>
   </div>
 
-  <script src="app.js?v=13"></script>
+  <script src Prompt="app.js?v=14"></script>
 </body>
 </html>
