@@ -23,12 +23,16 @@
   var aktifBoyut = "16:9";
   var W = 1280, H = 720;
   var LS_KEY = "oscodevideo_kod_v1";
+  var LS_TEMA = "oscodevideo_tema";
 
   /* ==================== ELEMENTLER ==================== */
   var codeInput    = $("codeInput");
   var generateBtn  = $("generateBtn");
   var clearBtn     = $("clearBtn");
   var howBtn       = $("howBtn");
+  var cancelBtn    = $("cancelBtn");
+  var themeBtn     = $("themeBtn");
+  var colorPicker  = $("colorPicker");
   var canvas       = $("renderCanvas");
   var previewVideo = $("previewVideo");
   var resultSec    = $("resultSection");
@@ -47,7 +51,26 @@
 
   var ctx = canvas ? canvas.getContext("2d") : null;
 
-  /* ==================== MODAL (Nasıl yapılır) ==================== */
+  /* ==================== TEMA ==================== */
+  function temaUygula(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    if (themeBtn) themeBtn.textContent = t === "light" ? "☀️" : "🌙";
+  }
+  function temaYukle() {
+    var t = "dark";
+    try { t = localStorage.getItem(LS_TEMA) || "dark"; } catch (e) {}
+    temaUygula(t);
+  }
+  if (themeBtn) {
+    themeBtn.addEventListener("click", function () {
+      var cur = document.documentElement.getAttribute("data-theme") || "dark";
+      var yeni = cur === "dark" ? "light" : "dark";
+      temaUygula(yeni);
+      try { localStorage.setItem(LS_TEMA, yeni); } catch (e) {}
+    });
+  }
+
+  /* ==================== MODAL ==================== */
   function openModal() {
     if (!howModal) return;
     howModal.classList.add("show");
@@ -62,7 +85,6 @@
       copyBtn.textContent = "📋 Kopyala";
     }
   }
-
   if (howBtn) howBtn.addEventListener("click", openModal);
   if (modalClose) modalClose.addEventListener("click", closeModal);
   if (howModal) {
@@ -77,19 +99,16 @@
   if (copyBtn && promptText) {
     copyBtn.addEventListener("click", async function () {
       var text = promptText.textContent || promptText.innerText;
-
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(text);
         } else {
-          // iOS Safari fallback
           var ta = document.createElement("textarea");
           ta.value = text;
           ta.style.position = "fixed";
           ta.style.opacity = "0";
           document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
+          ta.focus(); ta.select();
           document.execCommand("copy");
           document.body.removeChild(ta);
         }
@@ -101,11 +120,38 @@
         }, 2000);
       } catch (e) {
         copyBtn.textContent = "❌ Kopyalanamadı";
-        setTimeout(function () {
-          copyBtn.textContent = "📋 Kopyala";
-        }, 2000);
+        setTimeout(function () { copyBtn.textContent = "📋 Kopyala"; }, 2000);
       }
     });
+  }
+
+  /* ==================== EDİTÖR ARAÇLARI ==================== */
+  function insertAtCursor(text) {
+    if (!codeInput) return;
+    var start = codeInput.selectionStart;
+    var end = codeInput.selectionEnd;
+    var val = codeInput.value;
+    codeInput.value = val.slice(0, start) + text + val.slice(end);
+    codeInput.selectionStart = codeInput.selectionEnd = start + text.length;
+    codeInput.focus();
+    kodKaydet();
+    sureGuncelle();
+  }
+
+  if (colorPicker) {
+    colorPicker.addEventListener("input", function () {
+      insertAtCursor("'" + colorPicker.value + "'");
+    });
+  }
+
+  var emojiBtns = $$("[data-emoji]");
+  for (var emi = 0; emi < emojiBtns.length; emi++) {
+    (function (btn) {
+      btn.addEventListener("click", function () {
+        var e = btn.getAttribute("data-emoji");
+        insertAtCursor("emoji('" + e + "', W/2, H/2, 100);");
+      });
+    })(emojiBtns[emi]);
   }
 
   /* ==================== BOYUT SEÇİCİ ==================== */
@@ -155,13 +201,26 @@
 
   /* ==================== ÖRNEKLER ==================== */
   var ORNEKLER = [
-    "@5s\nconst x = 100 + t * 900;\nda里(x, 360, 50, '#ff6b35');",
-    "@4s\narkaplan('#0f1117');\ndikdortgen(0, H - 100, W, 100, '#232838');\nconst zipla = Math.abs(Math.sin(t * Math.PI * 4)) * 300;\nda里(W/2, H - 150 - zipla, 50, '#ff6b35');",
-    "@3s\narkaplan('#0f1117');\nyazi('OsCodeVideo', W/2, H/2, 80, '#6c8cff');",
-    "@5s\narkaplan('#0f1117');\nconst x = 100 + t * (W - 200);\nemoji('🚀', x, H/2, 120);",
-    "@4s\narkaplan('#0f1117');\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.15;\nkalp(W/2, H/2 - 50, 150 * s, '#ff3b6b');",
-    "@2s\narkaplan('#ff6b35');\nyazi('Merhaba!', W/2, H/2, 90, '#fff');\n---\n@2s\narkaplan('#6c8cff');\nyazi('OsCodeVideo', W/2, H/2, 90, '#fff');\n---\n@2s\narkaplan('#22c55e');\nyazi('Hoş geldin!', W/2, H/2, 90, '#fff');",
-    "@4s\narkaplan('#0f1117');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#6c8cff');"
+    // 0 - Top
+    "@5s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nconst x = 100 + t * (W - 200);\nda里(x, H/2, 50, '#ff6b35');",
+    // 1 - Gradient
+    "@4s\ngradient('#ff6b35', '#6c8cff', 'capraz');\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.15;\nkalp(W/2, H/2 - 50, 200 * s, '#fff');",
+    // 2 - Parçacık
+    "@4s\narkaplan('#0a0a1a');\nparcacik(W/2, H/2, 60, '#00d9ff', 4);\nparcacik(W/2, H/2, 30, '#ff6b35', 6);",
+    // 3 - Gölge
+    "@4s\narkaplan('#0f1117');\ngolge('#00d9ff', 30, 0, 0);\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.15;\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\ngolgeKapat();",
+    // 4 - Filtre
+    "@3s\ngradient('#ff6b35', '#6c8cff', 'capraz');\nyazi('Net', W/2, H/2 - 100, 60, '#fff');\nbulanikla(10);\nyazi('Bulanık', W/2, H/2 + 100, 60, '#fff');\nfiltreKapat();",
+    // 5 - Konfeti
+    "@4s\narkaplan('#0f1117');\nkonfeti(W/2, H/2, 60, 12);\nyildizPatlamasi(W/2, H/2, 200, '#ffd700');",
+    // 6 - Şimşek
+    "@2s\narkaplan('#0a0a1a');\nsimsek(200, 100, W - 200, H - 100, '#fff200', 6);\nyildizPatlamasi(W/2, H/2, 100, '#fff');",
+    // 7 - Logo (URL'den resim)
+    "@5s\narkaplan('#0f1117');\nconst b = Math.min(W, H) * 0.55;\nresim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - b/2, H/2 - b/2, b, b);",
+    // 8 - Çoklu Sahne
+    "@2s\ngradient('#ff6b35', '#ffd23f', 'dikey');\nyazi('Merhaba!', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#6c8cff', '#a200ff', 'dikey');\nyazi('OsCodeVideo', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#22c55e', '#16a34a', 'dikey');\nyazi('Hoş geldin!', W/2, H/2, 90, '#fff');",
+    // 9 - Daktilo
+    "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d9ff');"
   ];
 
   for (var ofx = 0; ofx < ORNEKLER.length; ofx++) {
@@ -255,6 +314,17 @@
     return {
       arkaplan: function (renk) {
         ctx.fillStyle = renk || "#000";
+        ctx.fillRect(0, 0, W, H);
+      },
+      gradient: function (r1, r2, yon) {
+        yon = yon || "dikey";
+        var g;
+        if (yon === "yatay") g = ctx.createLinearGradient(0, 0, W, 0);
+        else if (yon === "capraz") g = ctx.createLinearGradient(0, 0, W, H);
+        else g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, r1 || "#000");
+        g.addColorStop(1, r2 || "#fff");
+        ctx.fillStyle = g;
         ctx.fillRect(0, 0, W, H);
       },
       daire: function (x, y, r, renk) {
@@ -352,6 +422,85 @@
         ctx.closePath();
         ctx.fill();
       },
+      yildizPatlamasi: function (x, y, boyut, renk) {
+        boyut = boyut || 80;
+        ctx.strokeStyle = renk || "#fff";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        for (var i = 0; i < 12; i++) {
+          var a = (Math.PI * 2 / 12) * i;
+          ctx.beginPath();
+          ctx.moveTo(x + Math.cos(a) * boyut * 0.3, y + Math.sin(a) * boyut * 0.3);
+          ctx.lineTo(x + Math.cos(a) * boyut, y + Math.sin(a) * boyut);
+          ctx.stroke();
+        }
+      },
+      konfeti: function (x, y, sayi, boyut) {
+        sayi = sayi || 30;
+        boyut = boyut || 10;
+        var renkler = ["#ff6b35", "#f7931e", "#ffd23f", "#ee4266", "#6c8cff", "#22c55e"];
+        for (var i = 0; i < sayi; i++) {
+          var seed = i * 12.9898;
+          var a = (Math.sin(seed) * 43758.5453 % 1) * Math.PI * 2;
+          var r = Math.abs(Math.sin(seed * 2) * 43758.5453 % 1) * 200;
+          var px = x + Math.cos(a) * r;
+          var py = y + Math.sin(a) * r;
+          ctx.fillStyle = renkler[i % renkler.length];
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(a + t * 3);
+          ctx.fillRect(-boyut / 2, -boyut / 4, boyut, boyut / 2);
+          ctx.restore();
+        }
+      },
+      simsek: function (x1, y1, x2, y2, renk, kalinlik) {
+        kalinlik = kalinlik || 4;
+        ctx.strokeStyle = renk || "#fff200";
+        ctx.lineWidth = kalinlik;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        var segCount = 8;
+        for (var i = 1; i < segCount; i++) {
+          var p = i / segCount;
+          var seed = i * 7.13 + t * 20;
+          var mx = x1 + (x2 - x1) * p + (Math.sin(seed) * 43758.5453 % 1) * 40;
+          var my = y1 + (y2 - y1) * p + (Math.sin(seed + 1) * 43758.5453 % 1) * 40;
+          ctx.lineTo(mx, my);
+        }
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      },
+      bulut: function (x, y, boyut, renk) {
+        boyut = boyut || 60;
+        ctx.fillStyle = renk || "#fff";
+        ctx.beginPath();
+        ctx.arc(x, y, boyut, 0, Math.PI * 2);
+        ctx.arc(x + boyut * 0.8, y + boyut * 0.2, boyut * 0.7, 0, Math.PI * 2);
+        ctx.arc(x - boyut * 0.8, y + boyut * 0.2, boyut * 0.7, 0, Math.PI * 2);
+        ctx.arc(x + boyut * 0.4, y - boyut * 0.5, boyut * 0.6, 0, Math.PI * 2);
+        ctx.arc(x - boyut * 0.4, y - boyut * 0.5, boyut * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      },
+      gunes: function (x, y, yaricap, renk) {
+        yaricap = yaricap || 60;
+        renk = renk || "#ffd700";
+        ctx.fillStyle = renk;
+        ctx.beginPath();
+        ctx.arc(x, y, yaricap, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = renk;
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        for (var i = 0; i < 12; i++) {
+          var a = (Math.PI * 2 / 12) * i;
+          ctx.beginPath();
+          ctx.moveTo(x + Math.cos(a) * yaricap * 1.3, y + Math.sin(a) * yaricap * 1.3);
+          ctx.lineTo(x + Math.cos(a) * yaricap * 1.8, y + Math.sin(a) * yaricap * 1.8);
+          ctx.stroke();
+        }
+      },
       emoji: function (karakter, x, y, boyut) {
         boyut = boyut || 64;
         ctx.font = boyut + "px system-ui, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
@@ -364,8 +513,19 @@
         if (!img) {
           img = new Image();
           img.crossOrigin = "anonymous";
+          img.onerror = function () { img.__hata = true; };
           img.src = url;
           imgCache[url] = img;
+          return;
+        }
+        if (img.__hata) {
+          ctx.fillStyle = "#ff6b35";
+          ctx.fillRect(x, y, w || 200, h || 200);
+          ctx.fillStyle = "#fff";
+          ctx.font = "bold 16px system-ui";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("Resim yüklenemedi", x + (w || 200) / 2, y + (h || 200) / 2);
           return;
         }
         if (!img.complete || img.naturalWidth === 0) return;
@@ -397,6 +557,61 @@
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(metin, x, y + kaydirma);
+      },
+      golge: function (renk, blur, xo, yo) {
+        ctx.shadowColor = renk || "#000";
+        ctx.shadowBlur = blur || 10;
+        ctx.shadowOffsetX = xo || 0;
+        ctx.shadowOffsetY = yo || 0;
+      },
+      golgeKapat: function () {
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      },
+      bulanikla: function (miktar) {
+        ctx.filter = "blur(" + (miktar || 5) + "px)";
+      },
+      siyahBeyaz: function () { ctx.filter = "grayscale(1)"; },
+      sepya: function () { ctx.filter = "sepia(1)"; },
+      filtreKapat: function () { ctx.filter = "none"; },
+      titre: function (miktar) {
+        miktar = miktar || 3;
+        ctx.translate(
+          (Math.random() - 0.5) * miktar,
+          (Math.random() - 0.5) * miktar
+        );
+      },
+      parcacik: function (x, y, sayi, renk, boyut) {
+        sayi = sayi || 20;
+        boyut = boyut || 3;
+        ctx.fillStyle = renk || "#fff";
+        for (var i = 0; i < sayi; i++) {
+          var seed = i * 12.9898;
+          var a = (Math.sin(seed) * 43758.5453 % 1) * Math.PI * 2;
+          var r = Math.abs(Math.sin(seed * 2) * 43758.5453 % 1) * 120;
+          var px = x + Math.cos(a) * r;
+          var py = y + Math.sin(a) * r;
+          var b = Math.abs(Math.sin(seed * 3) * 43758.5453 % 1) * boyut + 1;
+          ctx.beginPath();
+          ctx.arc(px, py, b, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      },
+      renk: function (isim) {
+        var paletler = {
+          neon:     ["#00fff0", "#ff00e6", "#a200ff", "#00ff89", "#fff200"],
+          gunbatimi:["#ff6b35", "#f7931e", "#ffd23f", "#ee4266", "#3d1e6d"],
+          okyanus:  ["#001f3f", "#0074d9", "#39cccc", "#7fdbff", "#b5e7ff"],
+          ates:     ["#ff0000", "#ff4500", "#ff6b35", "#ffa500", "#ffd700"],
+          orman:    ["#1b4332", "#2d6a4f", "#40916c", "#52b788", "#95d5b2"],
+          pastel:   ["#ffd6e0", "#ffefcf", "#d4f1f4", "#e0d4f4", "#d4f4e4"],
+          gece:     ["#0a0c12", "#131722", "#1a1f2e", "#232838", "#6c8cff"],
+          altin:    ["#b8860b", "#daa520", "#ffd700", "#ffed4e", "#fff8dc"]
+        };
+        var p = paletler[(isim || "").toLowerCase()] || paletler.neon;
+        return p.slice();
       }
     };
   }
@@ -405,14 +620,45 @@
     return new Function(
       "ctx", "t", "kare", "sure", "W", "H", "yardimci",
       '"use strict";' +
-      'var arkaplan=yardimci.arkaplan,daire=yardimci.daire,' +
-      'dikdortgen=yardimci.dikdortgen,yazi=yardimci.yazi,cizgi=yardimci.cizgi,' +
+      'var arkaplan=yardimci.arkaplan,gradient=yardimci.gradient,' +
+      'daire=yardimci.daire,dikdortgen=yardimci.dikdortgen,' +
+      'yazi=yardimci.yazi,cizgi=yardimci.cizgi,' +
       'yildiz=yardimci.yildiz,kalp=yardimci.kalp,ucgen=yardimci.ucgen,' +
-      'ok=yardimci.ok,cokgen=yardimci.cokgen,emoji=yardimci.emoji,' +
-      'resim=yardimci.resim,daktilo=yardimci.daktilo,kaydir=yardimci.kaydir,' +
-      'yukariCik=yardimci.yukariCik;' +
+      'ok=yardimci.ok,cokgen=yardimci.cokgen,' +
+      'yildizPatlamasi=yardimci.yildizPatlamasi,konfeti=yardimci.konfeti,' +
+      'simsek=yardimci.simsek,bulut=yardimci.bulut,gunes=yardimci.gunes,' +
+      'emoji=yardimci.emoji,resim=yardimci.resim,' +
+      'daktilo=yardimci.daktilo,kaydir=yardimci.kaydir,' +
+      'yukariCik=yardimci.yukariCik,' +
+      'golge=yardimci.golge,golgeKapat=yardimci.golgeKapat,' +
+      'bulanikla=yardimci.bulanikla,siyahBeyaz=yardimci.siyahBeyaz,' +
+      'sepya=yardimci.sepya,filtreKapat=yardimci.filtreKapat,' +
+      'titre=yardimci.titre,parcacik=yardimci.parcacik,renk=yardimci.renk;' +
       code
     );
+  }
+
+  /* ==================== RESİM ÖN YÜKLEME ==================== */
+  async function resimleriOnYukle(code) {
+    var re = /resim\s*\(\s*['"]([^'"]+)['"]/g;
+    var m;
+    var promises = [];
+    while ((m = re.exec(code)) !== null) {
+      (function (url) {
+        if (imgCache[url]) return;
+        var img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onerror = function () { img.__hata = true; };
+        img.src = url;
+        imgCache[url] = img;
+        promises.push(new Promise(function (resolve) {
+          img.onload = resolve;
+          img.onerror = resolve;
+          setTimeout(resolve, 5000);
+        }));
+      })(m[1]);
+    }
+    return Promise.all(promises);
   }
 
   /* ==================== WATERMARK ==================== */
@@ -423,7 +669,6 @@
 
     var elapsedSn = globalElapsedMs / 1000;
     var alpha = 0.25 + Math.sin(elapsedSn * 10) * 0.1;
-
     var boyut = Math.round(Math.min(W, H) * 0.11);
     if (boyut < 30) boyut = 30;
 
@@ -469,6 +714,14 @@
   }
 
   /* ==================== ÜRETİM ==================== */
+  var iptalEdildi = false;
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", function () {
+      iptalEdildi = true;
+    });
+  }
+
   async function uret() {
     if (!codeInput || !canvas || !ctx) return;
 
@@ -483,7 +736,7 @@
       addBotMessage("⚠️ Toplam süre en az 1 saniye olmalı.", "err"); return;
     }
     if (analiz.toplamSure > MAX_SURE) {
-      addBotMessage("⚠️ Toplam süre " + MAX_SURE + " saniyeyi geçemez (şu an: " + analiz.toplamSure.toFixed(1) + " sn).", "err");
+      addBotMessage("⚠️ Toplam süre " + MAX_SURE + " saniyeyi geçemez.", "err");
       return;
     }
 
@@ -511,8 +764,10 @@
     if (!mime) { addBotMessage("❌ Uygun format bulunamadı.", "err"); return; }
     var ext = mime.indexOf("mp4") >= 0 ? "mp4" : "webm";
 
+    iptalEdildi = false;
     clearVideoChat();
     generateBtn.disabled = true;
+    if (cancelBtn) cancelBtn.hidden = false;
     previewVideo.hidden = true;
     resultSec.hidden = true;
     canvas.style.display = "block";
@@ -521,13 +776,27 @@
     generateBtn.textContent = "⚡ Üretiliyor...";
 
     var sahneSayisi = derlenmis.length;
-    var m1 = addBotMessage('<span class="spinner"></span> 📥 ' + sahneSayisi + ' sahne analiz ediliyor...');
-    await sleep(300);
-    updateMessage(m1, "📥 " + sahneSayisi + " sahne analiz edildi ✓");
+
+    // Resim ön yükleme
+    var resimVar = /resim\s*\(/.test(raw);
+    var m1;
+    if (resimVar) {
+      m1 = addBotMessage('<span class="spinner"></span> 🖼️ Resimler yükleniyor...');
+      await resimleriOnYukle(raw);
+      updateMessage(m1, "🖼️ Resimler hazır ✓");
+    } else {
+      m1 = addBotMessage('<span class="spinner"></span> 📥 ' + sahneSayisi + ' sahne analiz ediliyor...');
+      await sleep(300);
+      updateMessage(m1, "📥 " + sahneSayisi + " sahne analiz edildi ✓");
+    }
+
+    if (iptalEdildi) { uretimBitti(); return; }
 
     var m2 = addBotMessage('<span class="spinner"></span> 🎨 Sahne hazırlanıyor...');
     await sleep(250);
     updateMessage(m2, "🎨 Sahne hazır ✓");
+
+    if (iptalEdildi) { uretimBitti(); return; }
 
     var m3 = addBotMessage('<span class="spinner"></span> 🏃 Animasyon oynatılıyor...<div class="mini-bar"><div></div></div>');
     var miniFill = m3 ? m3.querySelector(".mini-bar > div") : null;
@@ -539,8 +808,7 @@
       derlenmis[0].fn(ctx, 0, 0, derlenmis[0].duration, W, H, makeHelpers());
     } catch (e) {
       updateMessage(m3, "❌ Çalışma hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
-      generateBtn.disabled = false; generateBtn.textContent = "⚡ Videoyu Oluştur";
-      progressBar.hidden = true; return;
+      uretimBitti(); progressBar.hidden = true; return;
     }
 
     await sleep(200);
@@ -551,8 +819,7 @@
       rec = new MediaRecorder(stream, { mimeType: mime });
     } catch (e) {
       updateMessage(m3, "❌ MediaRecorder hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
-      generateBtn.disabled = false; generateBtn.textContent = "⚡ Videoyu Oluştur";
-      progressBar.hidden = true; return;
+      uretimBitti(); progressBar.hidden = true; return;
     }
 
     var chunks = [];
@@ -569,6 +836,7 @@
       rec.onstop = function () {
         clearTimeout(killer);
         stopped = true;
+        if (iptalEdildi) { reject(new Error("__IPTAL__")); return; }
         if (!chunks.length) { reject(new Error("Kayıt boş döndü. Tekrar dene.")); return; }
         resolve(new Blob(chunks, { type: mime }));
       };
@@ -589,18 +857,20 @@
       var acc = 0;
       for (var i = 0; i < derlenmis.length; i++) {
         var sMs = derlenmis[i].duration * 1000;
-        if (elapsedMs < acc + sMs) {
-          return { idx: i, localT: (elapsedMs - acc) / sMs };
-        }
+        if (elapsedMs < acc + sMs) return { idx: i, localT: (elapsedMs - acc) / sMs };
         acc += sMs;
       }
       return { idx: derlenmis.length - 1, localT: 1 };
     }
 
     function tick() {
+      if (iptalEdildi) {
+        try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
+        return;
+      }
+
       var elapsed = performance.now() - startTime;
       var globalT = Math.min(1, elapsed / toplamMs);
-
       var hs = hangiSahne(elapsed);
       state.t = Math.max(0, Math.min(1, hs.localT));
 
@@ -612,8 +882,7 @@
       } catch (e) {
         try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
         updateMessage(m3, "❌ Sahne " + (hs.idx+1) + " hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err");
-        generateBtn.disabled = false; generateBtn.textContent = "⚡ Videoyu Oluştur";
-        progressBar.hidden = true; return;
+        uretimBitti(); progressBar.hidden = true; return;
       }
 
       watermarkCiz(elapsed, toplamMs);
@@ -645,9 +914,12 @@
     var blob;
     try { blob = await blobPromise; }
     catch (e) {
-      updateMessage(m3, "❌ " + escapeHtml(e.message), "err");
-      generateBtn.disabled = false; generateBtn.textContent = "⚡ Videoyu Oluştur";
-      progressBar.hidden = true; return;
+      if (e.message === "__IPTAL__") {
+        updateMessage(m3, "🛑 Üretim durduruldu.", "");
+      } else {
+        updateMessage(m3, "❌ " + escapeHtml(e.message), "err");
+      }
+      uretimBitti(); progressBar.hidden = true; return;
     }
 
     updateMessage(m3, "🏃 Animasyon tamamlandı ✓");
@@ -672,16 +944,22 @@
     addBotMessage("🔷 Son 5 saniyeye <b>OsCodeVideo</b> imzası otomatik gömüldü.", "ok");
     addBotMessage("İndirmek için alttaki ⬇️ butonuna bas.", "ok");
 
+    uretimBitti();
+  }
+
+  function uretimBitti() {
     generateBtn.disabled = false;
     generateBtn.textContent = "⚡ Videoyu Oluştur";
+    if (cancelBtn) cancelBtn.hidden = true;
   }
 
   if (generateBtn) generateBtn.addEventListener("click", uret);
 
   /* ==================== BAŞLAT ==================== */
+  temaYukle();
   boyutUygula();
   kodYukle();
   sureGuncelle();
 
-  console.log("✅ OsCodeVideo hazır (v11 - nasıl yapılır?)");
+  console.log("✅ OsCodeVideo hazır (v12)");
 })();
