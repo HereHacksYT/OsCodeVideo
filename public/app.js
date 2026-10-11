@@ -14,7 +14,7 @@
   /* ==================== AYARLAR ==================== */
   var FPS = 30;
   var MAX_SURE = 60;
-  var WATERMARK_MS = 5000; // Son 5 saniyede watermark görünür
+  var WATERMARK_MS = 5000;
   var BOYUTLAR = {
     "16:9": { w: 1280, h: 720 },
     "9:16": { w: 720,  h: 1280 },
@@ -28,6 +28,7 @@
   var codeInput    = $("codeInput");
   var generateBtn  = $("generateBtn");
   var clearBtn     = $("clearBtn");
+  var howBtn       = $("howBtn");
   var canvas       = $("renderCanvas");
   var previewVideo = $("previewVideo");
   var resultSec    = $("resultSection");
@@ -39,7 +40,73 @@
   var sureBilgi    = $("sureBilgi");
   var stage        = document.querySelector(".stage");
 
+  var howModal     = $("howModal");
+  var modalClose   = $("modalClose");
+  var copyBtn      = $("copyBtn");
+  var promptText   = $("promptText");
+
   var ctx = canvas ? canvas.getContext("2d") : null;
+
+  /* ==================== MODAL (Nasıl yapılır) ==================== */
+  function openModal() {
+    if (!howModal) return;
+    howModal.classList.add("show");
+    document.body.style.overflow = "hidden";
+  }
+  function closeModal() {
+    if (!howModal) return;
+    howModal.classList.remove("show");
+    document.body.style.overflow = "";
+    if (copyBtn) {
+      copyBtn.classList.remove("ok");
+      copyBtn.textContent = "📋 Kopyala";
+    }
+  }
+
+  if (howBtn) howBtn.addEventListener("click", openModal);
+  if (modalClose) modalClose.addEventListener("click", closeModal);
+  if (howModal) {
+    howModal.addEventListener("click", function (e) {
+      if (e.target === howModal) closeModal();
+    });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeModal();
+  });
+
+  if (copyBtn && promptText) {
+    copyBtn.addEventListener("click", async function () {
+      var text = promptText.textContent || promptText.innerText;
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          // iOS Safari fallback
+          var ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+        }
+        copyBtn.classList.add("ok");
+        copyBtn.textContent = "✅ Kopyalandı!";
+        setTimeout(function () {
+          copyBtn.classList.remove("ok");
+          copyBtn.textContent = "📋 Kopyala";
+        }, 2000);
+      } catch (e) {
+        copyBtn.textContent = "❌ Kopyalanamadı";
+        setTimeout(function () {
+          copyBtn.textContent = "📋 Kopyala";
+        }, 2000);
+      }
+    });
+  }
 
   /* ==================== BOYUT SEÇİCİ ==================== */
   function boyutUygula() {
@@ -348,11 +415,11 @@
     );
   }
 
-  /* ==================== WATERMARK (otomatik gömülü) ==================== */
+  /* ==================== WATERMARK ==================== */
   function watermarkCiz(globalElapsedMs, toplamMs) {
     var kalanMs = toplamMs - globalElapsedMs;
-    if (kalanMs > WATERMARK_MS) return;   // Henüz son 5 saniyeye gelmedi
-    if (kalanMs < 0) return;              // Video bitti
+    if (kalanMs > WATERMARK_MS) return;
+    if (kalanMs < 0) return;
 
     var elapsedSn = globalElapsedMs / 1000;
     var alpha = 0.25 + Math.sin(elapsedSn * 10) * 0.1;
@@ -465,7 +532,6 @@
     var m3 = addBotMessage('<span class="spinner"></span> 🏃 Animasyon oynatılıyor...<div class="mini-bar"><div></div></div>');
     var miniFill = m3 ? m3.querySelector(".mini-bar > div") : null;
 
-    // İlk kare
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
     state.t = 0;
@@ -479,7 +545,6 @@
 
     await sleep(200);
 
-    // Recorder
     var stream, rec;
     try {
       stream = canvas.captureStream(FPS);
@@ -551,7 +616,6 @@
         progressBar.hidden = true; return;
       }
 
-      /* ====== WATERMARK: kullanıcı kodundan SONRA, son 5 saniyede ====== */
       watermarkCiz(elapsed, toplamMs);
 
       var pct = Math.round(globalT * 100);
@@ -619,5 +683,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("✅ OsCodeVideo hazır (v10 - watermark)");
+  console.log("✅ OsCodeVideo hazır (v11 - nasıl yapılır?)");
 })();
