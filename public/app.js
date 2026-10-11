@@ -11,9 +11,7 @@
     });
   }
 
-  function sleep(ms) {
-    return new Promise(function (r) { setTimeout(r, ms); });
-  }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   var FPS = 30;
   var MAX_SURE = 60;
@@ -131,12 +129,8 @@
           });
         } else {
           var ta = document.createElement("textarea");
-          ta.value = text;
-          ta.style.position = "fixed";
-          ta.style.opacity = "0";
-          document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
+          ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.focus(); ta.select();
           document.execCommand("copy");
           document.body.removeChild(ta);
           copyBtn.classList.add("ok");
@@ -156,8 +150,7 @@
   // ==================== BOYUT ====================
   function boyutUygula() {
     var b = BOYUTLAR[aktifBoyut];
-    W = b.w;
-    H = b.h;
+    W = b.w; H = b.h;
     if (canvas) { canvas.width = W; canvas.height = H; }
     if (stage) stage.style.aspectRatio = W + " / " + H;
     drawIdle();
@@ -167,9 +160,7 @@
   for (var bi = 0; bi < boyutBtns.length; bi++) {
     (function (btn) {
       btn.addEventListener("click", function () {
-        for (var j = 0; j < boyutBtns.length; j++) {
-          boyutBtns[j].classList.remove("active");
-        }
+        for (var j = 0; j < boyutBtns.length; j++) boyutBtns[j].classList.remove("active");
         btn.classList.add("active");
         aktifBoyut = btn.getAttribute("data-size");
         boyutUygula();
@@ -185,7 +176,6 @@
       if (msgs[i] !== welcomeMsg) msgs[i].remove();
     }
   }
-
   function addBotMessage(html, type) {
     if (!chatLog) return null;
     var div = document.createElement("div");
@@ -194,7 +184,6 @@
     chatLog.appendChild(div);
     return div;
   }
-
   function updateMessage(el, html, type) {
     if (!el) return;
     var b = el.querySelector(".bubble");
@@ -215,10 +204,10 @@
     "@5s\narkaplan('#0f1117');\nconst b = Math.min(W, H) * 0.55;\nresim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - b/2, H/2 - b/2, b, b);",
     "@2s\ngradient('#ff6b35', '#ffd23f', 'dikey');\nyazi('Merhaba!', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#6c8cff', '#a200ff', 'dikey');\nyazi('OsCodeVideo', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#22c55e', '#16a34a', 'dikey');\nyazi('Hos geldin!', W/2, H/2, 90, '#fff');",
     "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d9ff');",
-    "@5s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nseslendir('Merhaba, hos geldiniz!', 'tr');\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.1;\ngolge('#00d9ff', 40, 0, 0);\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\ngolgeKapat();\nyazi('Hos Geldiniz!', W/2, H - 120, 60, '#fff');"
+    "@5s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nseslendir('Merhaba, hos geldiniz!', 'tr');\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.1;\ngolge('#00d9ff', 40, 0, 0);\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\ngolgeKapat();\nyazi('Hos Geldiniz!', W/2, H - 120, 60, '#fff');",
+    "@6s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nmuzik('do mi sol do2', 120, true);\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.1;\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\nyazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');"
   ];
 
-  // "da1re" -> "daire" duzeltmesi (kopyalama guvenligi icin)
   for (var ofx = 0; ofx < ORNEKLER.length; ofx++) {
     ORNEKLER[ofx] = ORNEKLER[ofx].split("da1re").join("daire");
   }
@@ -263,16 +252,12 @@
     clearBtn.addEventListener("click", function () {
       var eskiKod = codeInput.value;
       if (!eskiKod || eskiKod.trim() === "@5s") {
-        toastGoster("Zaten bos");
-        return;
+        toastGoster("Zaten bos"); return;
       }
       codeInput.value = "@5s\n";
-      kodKaydet();
-      sureGuncelle();
+      kodKaydet(); sureGuncelle();
       toastGoster("Kod temizlendi", function () {
-        codeInput.value = eskiKod;
-        kodKaydet();
-        sureGuncelle();
+        codeInput.value = eskiKod; kodKaydet(); sureGuncelle();
       });
     });
   }
@@ -287,7 +272,6 @@
     }
     return { duration: duration, code: raw.trim() };
   }
-
   function parseSahneler(raw) {
     var parcalar = raw.split(/^---\s*$/m);
     var sahneler = [];
@@ -302,7 +286,6 @@
     }
     return { sahneler: sahneler, toplamSure: toplamSure };
   }
-
   function sureGuncelle() {
     if (!sureBilgi || !codeInput) return;
     var r = parseSahneler(codeInput.value);
@@ -311,32 +294,60 @@
     else sureBilgi.style.color = "";
   }
 
-  // ==================== TTS ====================
+  // ==================== SES / MÜZİK ====================
   var sesCtx = null;
   var sesDest = null;
   var sesBuffers = {};
   var sesSources = [];
+  var sesHazirMi = false;
+
+  var NOTA = {
+    "do": 261.63, "re": 293.66, "mi": 329.63, "fa": 349.23,
+    "sol": 392.00, "la": 440.00, "si": 493.88,
+    "do2": 523.25, "re2": 587.33, "mi2": 659.25, "fa2": 698.46,
+    "sol2": 783.99, "la2": 880.00, "si2": 987.77,
+    "do3": 1046.50, "re3": 1174.66, "mi3": 1318.51,
+    "C4": 261.63, "D4": 293.66, "E4": 329.63, "F4": 349.23,
+    "G4": 392.00, "A4": 440.00, "B4": 493.88,
+    "C5": 523.25, "D5": 587.33, "E5": 659.25, "F5": 698.46,
+    "G5": 783.99, "A5": 880.00, "B5": 987.77,
+    "C3": 130.81, "D3": 146.83, "E3": 164.81, "F3": 174.61,
+    "G3": 196.00, "A3": 220.00, "B3": 246.94,
+    "sus": 0
+  };
 
   function sesKur() {
-    if (sesCtx) return;
+    if (sesCtx) {
+      if (sesCtx.state === "suspended") {
+        try { sesCtx.resume(); } catch (e) {}
+      }
+      return sesCtx.state === "running";
+    }
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return;
+      if (!AC) return false;
       sesCtx = new AC();
       sesDest = sesCtx.createMediaStreamDestination();
-      if (sesCtx.state === "suspended" && sesCtx.resume) sesCtx.resume();
-      var buf = sesCtx.createBuffer(1, sesCtx.sampleRate, sesCtx.sampleRate);
-      var src = sesCtx.createBufferSource();
-      src.buffer = buf;
-      src.loop = true;
-      src.connect(sesDest);
-      src.start(0);
+      if (sesCtx.state === "suspended") {
+        try { sesCtx.resume(); } catch (e) {}
+      }
+      // Sessiz kaynak: MediaRecorder ses kanalını canlı tutar
+      try {
+        var buf = sesCtx.createBuffer(1, sesCtx.sampleRate, sesCtx.sampleRate);
+        var src = sesCtx.createBufferSource();
+        src.buffer = buf;
+        src.loop = true;
+        src.connect(sesDest);
+        src.start(0);
+      } catch (e) {}
+      return true;
     } catch (e) {
-      sesCtx = null;
-      sesDest = null;
+      sesCtx = null; sesDest = null;
+      return false;
     }
   }
 
+  // TTS indir
   function sesIndir(text, lang) {
     if (!sesCtx) return Promise.resolve(null);
     var key = text + "|" + lang;
@@ -381,6 +392,87 @@
     } catch (e) {}
   }
 
+  // Müzik çal (nota dizisi)
+  function muzikCal(notalarStr, bpm, dongu) {
+    if (!sesCtx || !sesDest) return;
+    bpm = bpm || 120;
+    var notalar = notalarStr.split(/\s+/).filter(function (n) { return n; });
+    if (notalar.length === 0) return;
+
+    var notaSure = 60 / bpm;
+    var baslangic = sesCtx.currentTime + 0.05;
+    var toplamSure = notalar.length * notaSure;
+
+    function diziCal(baslangicTime) {
+      for (var i = 0; i < notalar.length; i++) {
+        (function (nota, index) {
+          var freq = NOTA[nota.toLowerCase()] || NOTA[nota] || 0;
+          if (freq === 0) return;
+          var t0 = baslangicTime + index * notaSure;
+          var t1 = t0 + notaSure * 0.9;
+
+          var osc = sesCtx.createOscillator();
+          var gain = sesCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+
+          // Yumuşak giriş-çıkış
+          gain.gain.setValueAtTime(0, t0);
+          gain.gain.linearRampToValueAtTime(0.15, t0 + 0.02);
+          gain.gain.setValueAtTime(0.15, t1 - 0.05);
+          gain.gain.linearRampToValueAtTime(0, t1);
+
+          osc.connect(gain);
+          gain.connect(sesDest);
+          gain.connect(sesCtx.destination);
+
+          osc.start(t0);
+          osc.stop(t1);
+          sesSources.push(osc);
+          osc.onended = function () {
+            var j = sesSources.indexOf(osc);
+            if (j >= 0) sesSources.splice(j, 1);
+          };
+        })(notalar[i], i);
+      }
+
+      if (dongu) {
+        // Loop: video bitene kadar çalmaya devam et
+        // Basit yaklaşım: 10 kere çal (yeterince uzun)
+        for (var k = 1; k < 10; k++) {
+          var ekBaslangic = baslangicTime + k * toplamSure;
+          for (var m = 0; m < notalar.length; m++) {
+            (function (nota, index) {
+              var freq = NOTA[nota.toLowerCase()] || NOTA[nota] || 0;
+              if (freq === 0) return;
+              var t0 = ekBaslangic + index * notaSure;
+              var t1 = t0 + notaSure * 0.9;
+              var osc = sesCtx.createOscillator();
+              var gain = sesCtx.createGain();
+              osc.type = "sine";
+              osc.frequency.value = freq;
+              gain.gain.setValueAtTime(0, t0);
+              gain.gain.linearRampToValueAtTime(0.15, t0 + 0.02);
+              gain.gain.setValueAtTime(0.15, t1 - 0.05);
+              gain.gain.linearRampToValueAtTime(0, t1);
+              osc.connect(gain);
+              gain.connect(sesDest);
+              gain.connect(sesCtx.destination);
+              osc.start(t0);
+              osc.stop(t1);
+              sesSources.push(osc);
+              osc.onended = function () {
+                var j = sesSources.indexOf(osc);
+                if (j >= 0) sesSources.splice(j, 1);
+              };
+            })(notalar[m], m);
+          }
+        }
+      }
+    }
+    diziCal(baslangic);
+  }
+
   function sesDurdur() {
     for (var i = 0; i < sesSources.length; i++) {
       try { sesSources[i].stop(); } catch (e) {}
@@ -407,14 +499,11 @@
 
   // ==================== HELPERS ====================
   var imgCache = {};
-  var state = { t: 0, seslendirilenler: {} };
+  var state = { t: 0, seslendirilenler: {}, muzikCalindi: {} };
 
   function makeHelpers() {
     return {
-      arkaplan: function (renk) {
-        ctx.fillStyle = renk || "#000";
-        ctx.fillRect(0, 0, W, H);
-      },
+      arkaplan: function (renk) { ctx.fillStyle = renk || "#000"; ctx.fillRect(0, 0, W, H); },
       gradient: function (r1, r2, yon) {
         yon = yon || "dikey";
         var g;
@@ -423,37 +512,26 @@
         else g = ctx.createLinearGradient(0, 0, 0, H);
         g.addColorStop(0, r1 || "#000");
         g.addColorStop(1, r2 || "#fff");
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
       },
       daire: function (x, y, r, renk) {
         ctx.fillStyle = renk || "#fff";
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
       },
-      dikdortgen: function (x, y, w, h, renk) {
-        ctx.fillStyle = renk || "#fff";
-        ctx.fillRect(x, y, w, h);
-      },
+      dikdortgen: function (x, y, w, h, renk) { ctx.fillStyle = renk || "#fff"; ctx.fillRect(x, y, w, h); },
       yazi: function (metin, x, y, boyut, renk) {
         ctx.fillStyle = renk || "#fff";
         ctx.font = "bold " + (boyut || 32) + "px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(metin, x, y);
       },
       cizgi: function (x1, y1, x2, y2, renk, kalinlik) {
         ctx.strokeStyle = renk || "#fff";
         ctx.lineWidth = kalinlik || 2;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
       },
       yildiz: function (x, y, r, nokta, renk) {
-        nokta = nokta || 5;
-        r = r || 40;
+        nokta = nokta || 5; r = r || 40;
         ctx.fillStyle = renk || "#ffd700";
         ctx.beginPath();
         for (var i = 0; i < nokta * 2; i++) {
@@ -461,11 +539,9 @@
           var a = (Math.PI / nokta) * i - Math.PI / 2;
           var px = x + Math.cos(a) * rr;
           var py = y + Math.sin(a) * rr;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
-        ctx.closePath();
-        ctx.fill();
+        ctx.closePath(); ctx.fill();
       },
       kalp: function (x, y, boyut, renk) {
         var s = (boyut || 100) / 100;
@@ -480,54 +556,40 @@
       },
       ucgen: function (x1, y1, x2, y2, x3, y3, renk) {
         ctx.fillStyle = renk || "#fff";
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.lineTo(x3, y3);
-        ctx.closePath();
-        ctx.fill();
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3);
+        ctx.closePath(); ctx.fill();
       },
       ok: function (x1, y1, x2, y2, renk, kalinlik) {
         var angle = Math.atan2(y2 - y1, x2 - x1);
         var len = Math.hypot(x2 - x1, y2 - y1);
         var headLen = Math.min(40, len * 0.35);
         kalinlik = kalinlik || 5;
-        ctx.strokeStyle = renk || "#fff";
-        ctx.fillStyle = renk || "#fff";
+        ctx.strokeStyle = renk || "#fff"; ctx.fillStyle = renk || "#fff";
         ctx.lineWidth = kalinlik;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
+        ctx.beginPath(); ctx.moveTo(x1, y1);
         var bx = x2 - Math.cos(angle) * headLen * 0.85;
         var by = y2 - Math.sin(angle) * headLen * 0.85;
-        ctx.lineTo(bx, by);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x2, y2);
+        ctx.lineTo(bx, by); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x2, y2);
         ctx.lineTo(x2 - Math.cos(angle - 0.4) * headLen, y2 - Math.sin(angle - 0.4) * headLen);
         ctx.lineTo(x2 - Math.cos(angle + 0.4) * headLen, y2 - Math.sin(angle + 0.4) * headLen);
-        ctx.closePath();
-        ctx.fill();
+        ctx.closePath(); ctx.fill();
       },
       cokgen: function (x, y, r, kenar, renk) {
-        kenar = kenar || 6;
-        r = r || 50;
+        kenar = kenar || 6; r = r || 50;
         ctx.fillStyle = renk || "#fff";
         ctx.beginPath();
         for (var i = 0; i < kenar; i++) {
           var a = (Math.PI * 2 / kenar) * i - Math.PI / 2;
           var px = x + Math.cos(a) * r;
           var py = y + Math.sin(a) * r;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
-        ctx.closePath();
-        ctx.fill();
+        ctx.closePath(); ctx.fill();
       },
       yildizPatlamasi: function (x, y, boyut, renk) {
         boyut = boyut || 80;
-        ctx.strokeStyle = renk || "#fff";
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
+        ctx.strokeStyle = renk || "#fff"; ctx.lineWidth = 3; ctx.lineCap = "round";
         for (var i = 0; i < 12; i++) {
           var a = (Math.PI * 2 / 12) * i;
           ctx.beginPath();
@@ -537,8 +599,7 @@
         }
       },
       konfeti: function (x, y, sayi, boyut) {
-        sayi = sayi || 30;
-        boyut = boyut || 10;
+        sayi = sayi || 30; boyut = boyut || 10;
         var renkler = ["#ff6b35", "#f7931e", "#ffd23f", "#ee4266", "#6c8cff", "#22c55e"];
         for (var i = 0; i < sayi; i++) {
           var seed = i * 12.9898;
@@ -547,21 +608,16 @@
           var px = x + Math.cos(a) * r;
           var py = y + Math.sin(a) * r;
           ctx.fillStyle = renkler[i % renkler.length];
-          ctx.save();
-          ctx.translate(px, py);
-          ctx.rotate(a + state.t * 3);
+          ctx.save(); ctx.translate(px, py); ctx.rotate(a + state.t * 3);
           ctx.fillRect(-boyut / 2, -boyut / 4, boyut, boyut / 2);
           ctx.restore();
         }
       },
       simsek: function (x1, y1, x2, y2, renk, kalinlik) {
         kalinlik = kalinlik || 4;
-        ctx.strokeStyle = renk || "#fff200";
-        ctx.lineWidth = kalinlik;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
+        ctx.strokeStyle = renk || "#fff200"; ctx.lineWidth = kalinlik;
+        ctx.lineCap = "round"; ctx.lineJoin = "round";
+        ctx.beginPath(); ctx.moveTo(x1, y1);
         var segCount = 8;
         for (var i = 1; i < segCount; i++) {
           var p = i / segCount;
@@ -570,8 +626,7 @@
           var my = y1 + (y2 - y1) * p + (Math.sin(seed + 1) * 43758.5453 % 1) * 40;
           ctx.lineTo(mx, my);
         }
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+        ctx.lineTo(x2, y2); ctx.stroke();
       },
       bulut: function (x, y, boyut, renk) {
         boyut = boyut || 60;
@@ -585,15 +640,10 @@
         ctx.fill();
       },
       gunes: function (x, y, yaricap, renk) {
-        yaricap = yaricap || 60;
-        renk = renk || "#ffd700";
+        yaricap = yaricap || 60; renk = renk || "#ffd700";
         ctx.fillStyle = renk;
-        ctx.beginPath();
-        ctx.arc(x, y, yaricap, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = renk;
-        ctx.lineWidth = 4;
-        ctx.lineCap = "round";
+        ctx.beginPath(); ctx.arc(x, y, yaricap, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = renk; ctx.lineWidth = 4; ctx.lineCap = "round";
         for (var i = 0; i < 12; i++) {
           var a = (Math.PI * 2 / 12) * i;
           ctx.beginPath();
@@ -605,8 +655,7 @@
       emoji: function (karakter, x, y, boyut) {
         boyut = boyut || 64;
         ctx.font = boyut + "px system-ui, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(karakter, x, y);
       },
       resim: function (url, x, y, w, h) {
@@ -615,17 +664,12 @@
           img = new Image();
           img.crossOrigin = "anonymous";
           img.onerror = function () { img.__hata = true; };
-          img.src = url;
-          imgCache[url] = img;
-          return;
+          img.src = url; imgCache[url] = img; return;
         }
         if (img.__hata) {
-          ctx.fillStyle = "#ff6b35";
-          ctx.fillRect(x, y, w || 200, h || 200);
-          ctx.fillStyle = "#fff";
-          ctx.font = "bold 16px system-ui";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
+          ctx.fillStyle = "#ff6b35"; ctx.fillRect(x, y, w || 200, h || 200);
+          ctx.fillStyle = "#fff"; ctx.font = "bold 16px system-ui";
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
           ctx.fillText("Resim yuklenemedi", x + (w || 200) / 2, y + (h || 200) / 2);
           return;
         }
@@ -637,8 +681,7 @@
         var n = Math.floor(state.t * metin.length);
         ctx.fillStyle = renk || "#fff";
         ctx.font = "bold " + boyut + "px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(metin.slice(0, n), x, y);
       },
       kaydir: function (metin, x, y, boyut, renk) {
@@ -646,8 +689,7 @@
         var kaydirma = (1 - state.t) * (W * 0.8);
         ctx.fillStyle = renk || "#fff";
         ctx.font = "bold " + boyut + "px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(metin, x - kaydirma, y);
       },
       yukariCik: function (metin, x, y, boyut, renk) {
@@ -655,21 +697,16 @@
         var kaydirma = (1 - state.t) * (H * 0.4);
         ctx.fillStyle = renk || "#fff";
         ctx.font = "bold " + boyut + "px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(metin, x, y + kaydirma);
       },
       golge: function (renk, blur, xo, yo) {
-        ctx.shadowColor = renk || "#000";
-        ctx.shadowBlur = blur || 10;
-        ctx.shadowOffsetX = xo || 0;
-        ctx.shadowOffsetY = yo || 0;
+        ctx.shadowColor = renk || "#000"; ctx.shadowBlur = blur || 10;
+        ctx.shadowOffsetX = xo || 0; ctx.shadowOffsetY = yo || 0;
       },
       golgeKapat: function () {
-        ctx.shadowColor = "transparent";
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
+        ctx.shadowColor = "transparent"; ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
       },
       bulanikla: function (miktar) { ctx.filter = "blur(" + (miktar || 5) + "px)"; },
       siyahBeyaz: function () { ctx.filter = "grayscale(1)"; },
@@ -680,8 +717,7 @@
         ctx.translate((Math.random() - 0.5) * miktar, (Math.random() - 0.5) * miktar);
       },
       parcacik: function (x, y, sayi, renk, boyut) {
-        sayi = sayi || 20;
-        boyut = boyut || 3;
+        sayi = sayi || 20; boyut = boyut || 3;
         ctx.fillStyle = renk || "#fff";
         for (var i = 0; i < sayi; i++) {
           var seed = i * 12.9898;
@@ -690,21 +726,19 @@
           var px = x + Math.cos(a) * r;
           var py = y + Math.sin(a) * r;
           var b = Math.abs(Math.sin(seed * 3) * 43758.5453 % 1) * boyut + 1;
-          ctx.beginPath();
-          ctx.arc(px, py, b, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(px, py, b, 0, Math.PI * 2); ctx.fill();
         }
       },
       renk: function (isim) {
         var paletler = {
-          neon:      ["#00fff0", "#ff00e6", "#a200ff", "#00ff89", "#fff200"],
+          neon: ["#00fff0", "#ff00e6", "#a200ff", "#00ff89", "#fff200"],
           gunbatimi: ["#ff6b35", "#f7931e", "#ffd23f", "#ee4266", "#3d1e6d"],
-          okyanus:   ["#001f3f", "#0074d9", "#39cccc", "#7fdbff", "#b5e7ff"],
-          ates:      ["#ff0000", "#ff4500", "#ff6b35", "#ffa500", "#ffd700"],
-          orman:     ["#1b4332", "#2d6a4f", "#40916c", "#52b788", "#95d5b2"],
-          pastel:    ["#ffd6e0", "#ffefcf", "#d4f1f4", "#e0d4f4", "#d4f4e4"],
-          gece:      ["#0a0c12", "#131722", "#1a1f2e", "#232838", "#6c8cff"],
-          altin:     ["#b8860b", "#daa520", "#ffd700", "#ffed4e", "#fff8dc"]
+          okyanus: ["#001f3f", "#0074d9", "#39cccc", "#7fdbff", "#b5e7ff"],
+          ates: ["#ff0000", "#ff4500", "#ff6b35", "#ffa500", "#ffd700"],
+          orman: ["#1b4332", "#2d6a4f", "#40916c", "#52b788", "#95d5b2"],
+          pastel: ["#ffd6e0", "#ffefcf", "#d4f1f4", "#e0d4f4", "#d4f4e4"],
+          gece: ["#0a0c12", "#131722", "#1a1f2e", "#232838", "#6c8cff"],
+          altin: ["#b8860b", "#daa520", "#ffd700", "#ffed4e", "#fff8dc"]
         };
         var p = paletler[(isim || "").toLowerCase()] || paletler.neon;
         return p.slice();
@@ -715,6 +749,12 @@
         if (state.seslendirilenler[key]) return;
         state.seslendirilenler[key] = true;
         sesCal(metin, dil);
+      },
+      muzik: function (notalar, bpm, dongu) {
+        var key = notalar + "|" + (bpm || 120) + "|" + (dongu ? "1" : "0");
+        if (state.muzikCalindi[key]) return;
+        state.muzikCalindi[key] = true;
+        muzikCal(notalar, bpm, dongu);
       }
     };
   }
@@ -737,7 +777,7 @@
       'bulanikla=yardimci.bulanikla,siyahBeyaz=yardimci.siyahBeyaz,' +
       'sepya=yardimci.sepya,filtreKapat=yardimci.filtreKapat,' +
       'titre=yardimci.titre,parcacik=yardimci.parcacik,renk=yardimci.renk,' +
-      'seslendir=yardimci.seslendir;' +
+      'seslendir=yardimci.seslendir,muzik=yardimci.muzik;' +
       code
     );
   }
@@ -752,11 +792,9 @@
         var img = new Image();
         img.crossOrigin = "anonymous";
         img.onerror = function () { img.__hata = true; };
-        img.src = url;
-        imgCache[url] = img;
+        img.src = url; imgCache[url] = img;
         promises.push(new Promise(function (resolve) {
-          img.onload = resolve;
-          img.onerror = resolve;
+          img.onload = resolve; img.onerror = resolve;
           setTimeout(resolve, 5000);
         }));
       })(m[1]);
@@ -779,32 +817,27 @@
     ctx.shadowBlur = Math.round(boyut * 0.25);
     ctx.fillStyle = "#00d9ff";
     ctx.font = "bold " + boyut + "px system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("OsCodeVideo", W / 2, H / 2);
     ctx.restore();
   }
 
   function drawIdle() {
     if (!ctx) return;
-    ctx.fillStyle = "#0a0c12";
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = "#232838";
-    ctx.font = "bold 42px system-ui";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#0a0c12"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#232838"; ctx.font = "bold 42px system-ui";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("Onizleme", W / 2, H / 2);
   }
 
   function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    return /iPad|iPhone|iPod/.test(navigator;.userAgent) ||
            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   }
-
   function pickMime() {
-    var iOS = isIOS();
+    var iOS =code isIOS();
     var list = iOS
-      ? ["video/mp4", "video/mp4;codecs=avc1", "video/mp4;codecs=h264",
+      ? ["video/mp4", "video/mp4;codecs=avc1", "video/mp4cs=h264",
          "video/webm;codecs=vp8", "video/webm"]
       : ["video/webm;codecs=vp8", "video/webm;codecs=vp9",
          "video/webm", "video/mp4"];
@@ -819,7 +852,6 @@
     cancelBtn.addEventListener("click", function () { iptalEdildi = true; });
   }
 
-  // ==================== ÜRETİM ====================
   async function uret() {
     if (!codeInput || !canvas || !ctx) return;
     var raw = codeInput.value.trim();
@@ -829,8 +861,7 @@
     if (analiz.sahneler.length === 0) { addBotMessage("Gecerli sahne yok.", "err"); return; }
     if (analiz.toplamSure < 1) { addBotMessage("Sure en az 1 sn.", "err"); return; }
     if (analiz.toplamSure > MAX_SURE) {
-      addBotMessage("Sure " + MAX_SURE + " sn'yi gecemez.", "err");
-      return;
+      addBotMessage("Sure " + MAX_SURE + " sn'yi gecemez.", "err"); return;
     }
 
     var derlenmis = [];
@@ -847,12 +878,10 @@
     }
 
     if (typeof MediaRecorder === "undefined") {
-      addBotMessage("Tarayici MediaRecorder yok.", "err");
-      return;
+      addBotMessage("Tarayici MediaRecorder yok.", "err"); return;
     }
     if (!canvas.captureStream) {
-      addBotMessage("Tarayici canvas kaydini desteklemiyor.", "err");
-      return;
+      addBotMessage("Tarayici canvas kaydini desteklemiyor.", "err"); return;
     }
 
     var mime = pickMime();
@@ -871,14 +900,24 @@
     generateBtn.textContent = "Uretiliyor...";
 
     var sahneSayisi = derlenmis.length;
-    sesKur();
 
     var resimVar = /resim\s*\(/.test(raw);
     var sesVar = /seslendir\s*\(/.test(raw);
+    var muzikVar = /muzik\s*\(/.test(raw);
+    var sesGerekli = sesVar || muzikVar;
+
+    // SADECE ses gerekiyorsa AudioContext'i baslat
+    var sesAktif = false;
+    if (sesGerekli) {
+      sesAktif = sesKur();
+      if (!sesAktif) {
+        addBotMessage("Not: Ses/muzik baslatilamadi, video sessiz kaydedilecek.");
+      }
+    }
 
     var m1 = addBotMessage('<span class="spinner"></span> Hazirlik...');
     if (resimVar) await resimleriOnYukle(raw);
-    if (sesVar) await sesleriOnYukle(raw);
+    if (sesVar && sesAktif) await sesleriOnYukle(raw);
     updateMessage(m1, "Hazirlik tamam");
 
     if (iptalEdildi) { uretimBitti(); return; }
@@ -893,35 +932,35 @@
     var miniFill = m3 ? m3.querySelector(".mini-bar > div") : null;
 
     state.seslendirilenler = {};
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
+    state.muzikCalindi = {};
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
     state.t = 0;
     try {
       derlenmis[0].fn(ctx, 0, 0, derlenmis[0].duration, W, H, makeHelpers());
     } catch (e) {
       updateMessage(m3, "Calisma hatasi: " + escapeHtml(e.message), "err");
-      uretimBitti();
-      progressBar.hidden = true;
-      return;
+      uretimBitti(); progressBar.hidden = true; return;
     }
 
     await sleep(200);
 
+    // Stream: video her zaman, ses SADECE gerekliyse
     var stream, rec;
     try {
       var canvasStream = canvas.captureStream(FPS);
       var tracks = canvasStream.getVideoTracks().slice();
-      if (sesDest) {
+
+      if (sesAktif && sesDest) {
         var audioTracks = sesDest.stream.getAudioTracks();
         for (var ai = 0; ai < audioTracks.length; ai++) tracks.push(audioTracks[ai]);
       }
+
       stream = new MediaStream(tracks);
-      rec = new MediaRecorder(stream, { mimeType: mime });
+      var recOpts = { mimeType: mime };
+      rec = new MediaRecorder(stream, recOpts);
     } catch (e) {
       updateMessage(m3, "MediaRecorder hatasi: " + escapeHtml(e.message), "err");
-      uretimBitti();
-      progressBar.hidden = true;
-      return;
+      uretimBitti(); progressBar.hidden = true; return;
     }
 
     var chunks = [];
@@ -933,23 +972,29 @@
       var killer = setTimeout(function () {
         try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
         reject(new Error("Zaman asimi."));
-      }, toplamMs + 20000);
+      }, toplamMs + 25000);
 
       rec.onstop = function () {
         clearTimeout(killer);
         stopped = true;
         if (iptalEdildi) { reject(new Error("__IPTAL__")); return; }
-        if (!chunks.length) { reject(new Error("Kayit bos. Tekrar dene.")); return; }
+        if (!chunks.length) {
+          reject(new Error("Kayit bos. Tekrar dene."));
+          return;
+        }
         resolve(new Blob(chunks, { type: mime }));
       };
-      rec.onerror = function (e) {
+      rec.onerror = function () {
         clearTimeout(killer);
         reject(new Error("Kayit hatasi."));
       };
     });
 
-    rec.start(100);
-    await sleep(200);
+    // NOT: timeslice olmadan başlat — bazı tarayıcılar için daha stabil
+    rec.start();
+
+    // Recorder'ın ısınması için kısa bekleme
+    await sleep(400);
 
     var startTime = performance.now();
     var helpers = makeHelpers();
@@ -959,9 +1004,7 @@
       var acc = 0;
       for (var i = 0; i < derlenmis.length; i++) {
         var sMs = derlenmis[i].duration * 1000;
-        if (elapsedMs < acc + sMs) {
-          return { idx: i, localT: (elapsedMs - acc) / sMs };
-        }
+        if (elapsedMs < acc + sMs) return { idx: i, localT: (elapsedMs - acc) / sMs };
         acc += sMs;
       }
       return { idx: derlenmis.length - 1, localT: 1 };
@@ -977,16 +1020,13 @@
       var hs = hangiSahne(elapsed);
       state.t = Math.max(0, Math.min(1, hs.localT));
 
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
       try {
         derlenmis[hs.idx].fn(ctx, state.t, frameNo++, derlenmis[hs.idx].duration, W, H, helpers);
       } catch (e) {
         try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
         updateMessage(m3, "Sahne " + (hs.idx + 1) + " hatasi: " + escapeHtml(e.message), "err");
-        uretimBitti();
-        progressBar.hidden = true;
-        return;
+        uretimBitti(); progressBar.hidden = true; return;
       }
       watermarkCiz(elapsed, toplamMs);
 
@@ -1003,9 +1043,10 @@
       if (elapsed < toplamMs) {
         requestAnimationFrame(tick);
       } else if (!stopped) {
+        // Bitişten sonra biraz bekle, sonra durdur
         setTimeout(function () {
           try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
-        }, 800);
+        }, 1500);
       }
     }
     requestAnimationFrame(tick);
@@ -1021,9 +1062,7 @@
       } else {
         updateMessage(m3, escapeHtml(e.message), "err");
       }
-      uretimBitti();
-      progressBar.hidden = true;
-      return;
+      uretimBitti(); progressBar.hidden = true; return;
     }
 
     sesDurdur();
@@ -1043,8 +1082,7 @@
 
     updateMessage(m4,
       "Video hazir! <small>(" + analiz.toplamSure.toFixed(1) + " sn / " +
-      (blob.size / 1024 / 1024).toFixed(2) + " MB / ." + ext + ")</small>",
-      "ok"
+      (blob.size / 1024 / 1024).toFixed(2) + " MB / ." + ext + ")</small>", "ok"
     );
     addBotMessage("Indirmek icin asagidaki butona bas.", "ok");
     uretimBitti();
@@ -1058,11 +1096,10 @@
 
   if (generateBtn) generateBtn.addEventListener("click", uret);
 
-  // ==================== BAŞLAT ====================
   temaYukle();
   boyutUygula();
   kodYukle();
   sureGuncelle();
 
-  console.log("OsCodeVideo hazir v25");
+  console.log("OsCodeVideo hazir v26");
 })();
