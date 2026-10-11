@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css?v=21" />
+  <link rel="stylesheet" href="style.css?v=22" />
 </head>
 <body>
   <header>
@@ -82,6 +82,7 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
           <button data-ex="7">🖼️ Logo</button>
           <button data-ex="8">Çoklu Sahne</button>
           <button data-ex="9">Daktilo</button>
+          <button data-ex="10">🎤 Konuşma</button>
         </div>
         <div class="action-buttons">
           <button id="clearBtn" class="ghost">🗑️ Temizle</button>
@@ -145,32 +146,51 @@ TEMEL ÇİZİM:
 - bulut(x, y, boyut, renk)
 - gunes(x, y, yaricap, renk)
 
-SESLENDİRME (TTS):
+SESLENDİRME (TTS) - ÖNEMLİ:
 - seslendir("Metin", "tr")
 - Belirtilen metni sese çevirir ve videoya gömer
 - yazi() fonksiyonu SESSİZDİR, sadece görüntü verir
 - Desteklenen diller: tr, en, de, fr, es, it, ru, ar, ja, ko, zh
 - Metin ~200 karakter olmalı
 
-  ÖRNEK:
+  ÖRNEK 1 - Yazı + ses:
   @5s
   arkaplan('#0f1117');
   seslendir('Merhaba dünya!', 'tr');
   yazi('Merhaba dünya!', W/2, H/2, 80, '#fff');
 
+  ÖRNEK 2 - Sadece bazı yazılar sesli:
+  @5s
+  gradient('#0a0a1a', '#1a0033', 'dikey');
+  seslendir('Hoş geldiniz', 'tr');
+  yazi('Hoş geldiniz', W/2, H/2 - 60, 70, '#00d9ff');
+  yazi('OsCodeVideo', W/2, H/2 + 60, 50, '#6c8cff'); // sessiz
+
 MEDYA - EMOJI:
 - emoji("🚀", x, y, boyut)
   Örnek: emoji("🔥", W/2, H/2, 120);
 
-MEDYA - RESİM:
+MEDYA - RESİM (URL'den görsel gösterme):
 - resim(url, x, y, w, h)
-- URL CORS desteklemeli (imgur, i.ibb.co, cloudinary)
-- Örnek: resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - 150, H/2 - 150, 300, 300);
+- URL mutlaka CORS desteklemeli
+- Önerilen hosting: imgur.com, i.ibb.co, cloudinary
+
+  ÖRNEK - Ortada tam boyutta:
+  @5s
+  arkaplan('#0f1117');
+  const b = Math.min(W, H) * 0.55;
+  resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png',
+        W/2 - b/2, H/2 - b/2, b, b);
+
+  ÖRNEK - Köşede küçük logo:
+  @5s
+  gradient('#0a0a1a', '#1a0033', 'dikey');
+  resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', 30, 30, 80, 80);
 
 YAZI ANİMASYONLARI:
-- daktilo(metin, x, y, boyut, renk)
-- kaydir(metin, x, y, boyut, renk)
-- yukariCik(metin, x, y, boyut, renk)
+- daktilo(metin, x, y, boyut, renk)    [harf harf yazılır]
+- kaydir(metin, x, y, boyut, renk)     [soldan sağa kayar]
+- yukariCik(metin, x, y, boyut, renk)  [aşağıdan yukarı çıkar]
 
 EFEKT:
 - gradient(renk1, renk2, "dikey"|"yatay"|"capraz")
@@ -183,26 +203,48 @@ EFEKT:
 - parcacik(x, y, sayi, renk, boyut)
 - titre(miktar)
 
-RENK PALETLERİ (array döner):
-- renk("neon") renk("gunbatimi") renk("okyanus")
-- renk("ates") renk("orman") renk("pastel")
-- renk("gece") renk("altin")
+HAZIR RENK PALETLERİ (array döner):
+- renk("neon")      - renk("gunbatimi")  - renk("okyanus")
+- renk("ates")      - renk("orman")      - renk("pastel")
+- renk("gece")      - renk("altin")
 Kullanım: const p = renk("neon"); daire(100, 100, 50, p[0]);
 
 KURALLAR:
 - En üste süre yaz: @5s (max @60s)
 - Çoklu sahne için --- satırı ile böl
-- Sadece verilen fonksiyonları kullan
-- Renkleri hex ('#ff6b35') yaz
+- Her sahnenin başında kendi @Xs süresi olmalı
+- Sadece verilen fonksiyonları kullan, başka kütüphane yok
+- Renkleri hex ('#ff6b35') veya rgb('rgb(255,0,0)') yaz
 - Metin ortalamak için x = W/2, y = H/2 kullan
-- Resim URL'si MUTLAKA CORS desteklemeli
-- Seslendirme metni kısa (max ~200 karakter)
+- Resim kullanacaksan MUTLAKA CORS destekleyen URL seç
+- Seslendirme metni kısa tut (max ~200 karakter)
+- Her seslendir() çağrısı sadece bir kez çalar
 
 ÖRNEK - Basit:
 @5s
 gradient('#0a0a1a', '#1a0033', 'dikey');
 const x = 100 + t * (W - 200);
 daire(x, H/2, 50, '#ff6b35');
+
+ÖRNEK - Çoklu sahne:
+@2s
+gradient('#ff6b35', '#ffd23f', 'dikey');
+yazi('Merhaba!', W/2, H/2, 90, '#fff');
+---
+@3s
+gradient('#6c8cff', '#a200ff', 'dikey');
+daktilo('OsCodeVideo', W/2, H/2, 90, '#fff');
+
+ÖRNEK - Logo + efekt:
+@6s
+gradient('#0a0a1a', '#1a0033', 'capraz');
+const b = Math.min(W, H) * 0.4;
+const s = 1 + Math.sin(t * Math.PI * 4) * 0.1;
+golge('#00d9ff', 40, 0, 0);
+resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png',
+      W/2 - (b*s)/2, H/2 - (b*s)/2 - 40, b*s, b*s);
+golgeKapat();
+yazi('OsCodeVideo', W/2, H/2 + 250, 50, '#00d9ff');
 
 ÖRNEK - Sesli tanıtım:
 @6s
@@ -217,11 +259,11 @@ yazi('Hoş Geldiniz!', W/2, H - 120, 60, '#fff');
       </div>
 
       <div class="modal-foot">
-        <button class="primary copy-btn" id="copyBtn var">📋 Kopyala</button>
+        <button class="primary copy-btn" id="copyBtn">📋 Kopyala</button>
       </div>
     </div>
   </div>
 
-  <script src="app.js?v=21"></script>
+  <script src="app.js?v=22"></script>
 </body>
 </html>
