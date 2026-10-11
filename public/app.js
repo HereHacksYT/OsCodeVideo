@@ -29,7 +29,7 @@
   }
 
   /* ==================== VİDEO ÜRETİCİ ==================== */
-  var FPS = 30, W = 1280, H = 720, MAX_SURE = 30, TIMEOUT_MS = 45000;
+  var FPS = 30, W = 1280, H = 720, MAX_SURE = 30, TIMEOUT_MS = 60000;
 
   var codeInput = $("codeInput");
   var generateBtn = $("generateBtn");
@@ -49,14 +49,14 @@
     if (!chatLog) return;
     var msgs = chatLog.querySelectorAll(".bot-msg");
     for (var i = 0; i < msgs.length; i++) {
-      if (msgs[i] !== welcomeMsg) msgs[i].remove();
-    }
+      if (msgsName[i] !== welcomeMsg) msgs[i].remove();
+    = }
   }
 
-  function addBotMessage(html, type) {
+  function addBotMessage "(html, type)bot {
     if (!chatLog) return null;
     var div = document.createElement("div");
-    div.className = "bot-msg";
+    div.class-msg";
     div.innerHTML = '<div class="avatar">🤖</div><div class="bubble ' + (type||"") + '">' + html + "</div>";
     chatLog.appendChild(div);
     return div;
@@ -136,6 +136,25 @@
   }
   drawIdle();
 
+  /* -------- MIME seçimi (iOS uyumlu) -------- */
+  function secMime() {
+    if (typeof MediaRecorder === "undefined") return null;
+    var list = [
+      "video/mp4;codecs=h264",
+      "video/mp4;codecs=avc1",
+      "video/mp4",
+      "video/webm;codecs=vp8",
+      "video/webm;codecs=vp9",
+      "video/webm"
+    ];
+    for (var i = 0; i < list.length; i++) {
+      try {
+        if (MediaRecorder.isTypeSupported(list[i])) return list[i];
+      } catch (e) {}
+    }
+    return "";
+  }
+
   async function uret() {
     if (!codeInput || !canvas || !ctx) return;
 
@@ -152,6 +171,18 @@
     var userFn;
     try { userFn = compile(code); }
     catch (e) { addBotMessage("❌ Kod hatası:<br><code>" + escapeHtml(e.message) + "</code>", "err"); return; }
+
+    if (typeof MediaRecorder === "undefined") {
+      addBotMessage("❌ Tarayıcın video kaydını desteklemiyor (iOS 14.3+ gerekli).", "err");
+      return;
+    }
+
+    var mime = secMime();
+    if (mime === null) {
+      addBotMessage("❌ Tarayıcın MediaRecorder desteklemiyor.", "err");
+      return;
+    }
+    var ext = (mime.indexOf("mp4") >= 0) ? "mp4" : "webm";
 
     clearVideoChat();
     generateBtn.disabled = true;
@@ -173,44 +204,46 @@
     var m3 = addBotMessage('<span class="spinner"></span> 🏃 Animasyon oynatılıyor...<div class="mini-bar"><div></div></div>');
     var miniFill = m3 ? m3.querySelector(".mini-bar > div") : null;
 
-    var stream, track, rec;
+    /* -------- Stream & Recorder -------- */
+    var stream, rec;
     try {
-      stream = canvas.captureStream(0);
-      track = stream.getVideoTracks()[0];
-      var options = ["video/webm;codecs=vp8", "video/webm;codecs=vp9", "video/webm"];
-      var mime;
-      for (var mi = 0; mi < options.length; mi++) {
-        if (MediaRecorder.isTypeSupported(options[mi])) { mime = options[mi]; break; }
-      }
-      rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000 });
+      // iOS için otomatik FPS (manuel requestFrame yerine)
+      stream = canvas.captureStream(FPS);
+
+      var opts = { videoBitsPerSecond: 2500000 };
+      if (mime) opts.mimeType = mime;
+      rec = new MediaRecorder(stream, opts);
     } catch (err) {
-      updateMessage(m3, "❌ MediaRecorder başlatılamadı.", "err");
+      updateMessage(m3, "❌ MediaRecorder başlatılamadı: <code>" + escapeHtml(err.message) + "</code>", "err");
       generateBtn.disabled = false; generateBtn.textContent = "⚡ Videoyu Oluştur";
       progressBar.hidden = true; return;
     }
 
     var chunks = [];
-    rec.ondataavailable = function (e) { if (e.data.size) chunks.push(e.data); };
+    rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
 
     var blobPromise = new Promise(function (resolve, reject) {
       var killer = setTimeout(function () {
         try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
-        reject(new Error("Zaman aşımı (45 sn)."));
+        reject(new Error("Zaman aşımı (" + (TIMEOUT_MS/1000) + " sn)."));
       }, TIMEOUT_MS);
       rec.onstop = function () {
         clearTimeout(killer);
-        if (!chunks.length) { reject(new Error("Kayıt boş.")); return; }
-        resolve(new Blob(chunks, { type: "video/webm" }));
+        if (!chunks.length) { reject(new Error("Kayıt boş döndü. Tekrar dene.")); return; }
+        resolve(new Blob(chunks, { type: mime || "video/webm" }));
       };
       rec.onerror = function () { clearTimeout(killer); reject(new Error("Kayıt hatası")); };
     });
 
-    rec.start();
+    // iOS'ta ilk kareyi alması için kısa gecikme
+    await sleep(150);
+    rec.start(100); // her 100 ms'de veri
 
     var startTime = performance.now();
     var durationMs = duration * 1000;
     var helpers = makeHelpers();
     var frameNo = 0;
+    var bitisGonderildi = false;
 
     function tick() {
       var elapsed = performance.now() - startTime;
@@ -226,8 +259,6 @@
         progressBar.hidden = true; return;
       }
 
-      if (track.requestFrame) track.requestFrame();
-
       var pct = Math.round(t * 100);
       progressFill.style.width = pct + "%";
       if (miniFill) miniFill.style.width = pct + "%";
@@ -238,10 +269,15 @@
       );
       generateBtn.textContent = "⚡ Üretiliyor... %" + pct;
 
-      if (elapsed < durationMs) requestAnimationFrame(tick);
-      else setTimeout(function () {
-        try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
-      }, 250);
+      if (elapsed < durationMs) {
+        requestAnimationFrame(tick);
+      } else if (!bitisGonderildi) {
+        bitisGonderildi = true;
+        // Son kareyi sabitle + kayıt durdur
+        setTimeout(function () {
+          try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
+        }, 400);
+      }
     }
     requestAnimationFrame(tick);
 
@@ -264,10 +300,10 @@
     canvas.style.display = "none";
     progressBar.hidden = true;
     downloadBtn.href = url;
-    downloadBtn.download = "oscodevideo-" + Date.now() + ".webm";
+    downloadBtn.download = "oscodevideo-" + Date.now() + "." + ext;
     resultSec.hidden = false;
 
-    updateMessage(m4, "✅ Video hazır! <small>(" + duration + " sn • " + (blob.size / 1024 / 1024).toFixed(2) + " MB)</small>", "ok");
+    updateMessage(m4, "✅ Video hazır! <small>(" + duration + " sn • " + (blob.size / 1024 / 1024).toFixed(2) + " MB • ." + ext + ")</small>", "ok");
     addBotMessage("İndirmek için alttaki ⬇️ butonuna bas.", "ok");
 
     generateBtn.disabled = false;
@@ -276,8 +312,8 @@
 
   if (generateBtn) generateBtn.addEventListener("click", uret);
 
-  /* ==================== DÖNÜŞTÜRÜCÜ ==================== */
-  var MAX_MB = 100;
+  /* ==================== DÖNÜŞTÜRÜCÜ (SUNUCU) ==================== */
+  var MAX_MB = 50;
   var dropZone = $("dropZone");
   var dropTitle = $("dropTitle");
   var dropSub = $("dropSub");
@@ -290,7 +326,6 @@
   var convDlBtn = $("convDownloadBtn");
 
   var selectedFile = null;
-  var ffmpegInstance = null;
 
   function clearConvChat() {
     if (!convChatLog) return;
@@ -315,24 +350,8 @@
     if (type) b.className = "bubble " + type;
   }
 
-  async function getFFmpeg() {
-    if (ffmpegInstance) return ffmpegInstance;
-    var ffmpegMod = await import("https://esm.sh/@ffmpeg/ffmpeg@0.12.10");
-    var utilMod = await import("https://esm.sh/@ffmpeg/util@0.12.1");
-    var ff = new ffmpegMod.FFmpeg();
-    await ff.load({
-      coreURL: await utilMod.toBlobURL("https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js", "text/javascript"),
-      wasmURL: await utilMod.toBlobURL("https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm", "application/wasm")
-    });
-    ffmpegInstance = ff;
-    return ff;
-  }
-
   function setFile(file) {
     if (!file) return;
-    if (!/\.webm$/i.test(file.name) && file.type !== "video/webm") {
-      clearConvChat(); addConvBot("❌ Sadece .webm kabul edilir.", "err"); return;
-    }
     if (file.size > MAX_MB * 1024 * 1024) {
       clearConvChat(); addConvBot("❌ Dosya çok büyük. Max " + MAX_MB + " MB.", "err"); return;
     }
@@ -364,65 +383,79 @@
     convertBtn.textContent = "🎬 Dönüştürülüyor...";
     convResult.hidden = true;
 
-    var m1 = addConvBot('<span class="spinner"></span> 📥 Dosya alındı...');
+    var m1 = addConvBot('<span class="spinner"></span> 📥 Dosya sunucuya yükleniyor...<div class="big-bar"><div style="width:0%"></div></div>');
+    var bigFill = m1 ? m1.querySelector(".big-bar > div") : null;
+
+    var formData = new FormData();
+    formData.append("file", selectedFile);
+
+    var mp4Blob = await new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/convert");
+      xhr.responseType = "blob";
+
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+          var pct = Math.round(e.loaded / e.total * 100);
+          if (bigFill) bigFill.style.width = pct + "%";
+          updateConvBot(m1,
+            "📥 Dosya sunucuya yükleniyor... %" + pct +
+            '<div class="big-bar"><div style="width:' + pct + '%"></div></div>'
+          );
+          convertBtn.textContent = "🎬 Yükleniyor... %" + pct;
+        }
+      };
+
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          resolve(xhr.response);
+        } else {
+          // Hata mesajı JSON olabilir
+          var reader = new FileReader();
+          reader.onload = function () {
+            var msg = "Sunucu hatası (" + xhr.status + ")";
+            try {
+              var j = JSON.parse(reader.result);
+              if (j.error) msg += ": " + j.error;
+            } catch (e) {}
+            reject(new Error(msg));
+          };
+          reader.readAsText(xhr.response);
+        }
+      };
+
+      xhr.onerror = function () { reject(new Error("Bağlantı hatası")); };
+      xhr.ontimeout = function () { reject(new Error("Zaman aşımı")); };
+
+      xhr.send(formData);
+    }).catch(function (e) {
+      updateConvBot(m1, "❌ " + escapeHtml(e.message), "err");
+      convertBtn.disabled = false;
+      convertBtn.textContent = "🎬 MP4'e Dönüştür";
+      return null;
+    });
+
+    if (!mp4Blob) return;
+
+    updateConvBot(m1, "📥 Yükleme tamam ✓");
+
+    var m2 = addConvBot('<span class="spinner"></span> 💾 MP4 hazırlanıyor...');
     await sleep(250);
-    updateConvBot(m1, "📥 Dosya alındı ✓ <small>(" + escapeHtml(selectedFile.name) + ")</small>");
 
-    var m2 = addConvBot('<span class="spinner"></span> 🧠 ffmpeg motoru yükleniyor...<br><small>İlk seferde ~25 MB.</small>');
-
-    var t0 = performance.now();
-    var ff;
-    try { ff = await getFFmpeg(); }
-    catch (e) {
-      updateConvBot(m2, "❌ Motor yüklenemedi: <code>" + escapeHtml(e.message || e) + "</code>", "err");
-      convertBtn.disabled = false; convertBtn.textContent = "🎬 MP4'e Dönüştür"; return;
-    }
-    var motorSn = ((performance.now() - t0) / 1000).toFixed(1);
-    updateConvBot(m2, "🧠 Motor hazır ✓ <small>(" + motorSn + " sn)</small>");
-
-    var m3 = addConvBot('<span class="spinner"></span> 🔄 MP4\'e dönüştürülüyor...<div class="big-bar"><div style="width:0%"></div></div>');
-    var bigFill = m3 ? m3.querySelector(".big-bar > div") : null;
-
-    var onProgress = function (data) {
-      var pct = Math.min(100, Math.max(0, Math.round((data.progress || 0) * 100)));
-      if (bigFill) bigFill.style.width = pct + "%";
-      updateConvBot(m3, "🔄 MP4'e dönüştürülüyor... %" + pct + '<div class="big-bar"><div style="width:' + pct + '%"></div></div>');
-      convertBtn.textContent = "🎬 Dönüştürülüyor... %" + pct;
-    };
-    ff.on("progress", onProgress);
-
-    var mp4Blob;
-    try {
-      var utilMod = await import("https://esm.sh/@ffmpeg/util@0.12.1");
-      await ff.writeFile("input.webm", await utilMod.fetchFile(selectedFile));
-      await ff.exec([
-        "-i", "input.webm",
-        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "128k",
-        "-movflags", "+faststart",
-        "output.mp4"
-      ]);
-      var data = await ff.readFile("output.mp4");
-      mp4Blob = new Blob([data.buffer], { type: "video/mp4" });
-      try { await ff.deleteFile("input.webm"); } catch (x) {}
-      try { await ff.deleteFile("output.mp4"); } catch (x) {}
-    } catch (e) {
-      updateConvBot(m3, "❌ Dönüşüm hatası: <code>" + escapeHtml(e.message || e) + "</code>", "err");
-      convertBtn.disabled = false; convertBtn.textContent = "🎬 MP4'e Dönüştür"; return;
-    } finally {
-      try { ff.off("progress", onProgress); } catch (x) {}
+    // Yanıtın gerçekten mp4 olup olmadığını kontrol et
+    if (mp4Blob.type && mp4Blob.type.indexOf("json") >= 0) {
+      var text = await mp4Blob.text();
+      updateConvBot(m2, "❌ Sunucu: <code>" + escapeHtml(text) + "</code>", "err");
+      convertBtn.disabled = false;
+      convertBtn.textContent = "🎬 MP4'e Dönüştür";
+      return;
     }
 
-    updateConvBot(m3, "🔄 Dönüştürme tamamlandı ✓");
-
-    var m4 = addConvBot('<span class="spinner"></span> 💾 MP4 hazırlanıyor...');
-    await sleep(250);
     var mb = (mp4Blob.size / 1024 / 1024).toFixed(2);
-    updateConvBot(m4, "✅ MP4 hazır! <small>(" + mb + " MB)</small>", "ok");
+    updateConvBot(m2, "✅ MP4 hazır! <small>(" + mb + " MB)</small>", "ok");
 
     var url = URL.createObjectURL(mp4Blob);
-    var baseName = selectedFile.name.replace(/\.webm$/i, "");
+    var baseName = selectedFile.name.replace(/\.[^.]+$/, "");
     convDlBtn.href = url;
     convDlBtn.download = baseName + ".mp4";
     convResult.hidden = false;
