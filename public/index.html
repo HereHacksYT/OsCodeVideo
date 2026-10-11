@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css?v=12" />
+  <link rel="stylesheet" href="style.css?v=13" />
 </head>
 <body>
   <header>
@@ -64,18 +64,10 @@
     </section>
 
     <section class="input-area">
-      <div class="editor-toolbar">
-        <span class="label">🎨 Hızlı:</span>
-        <label class="color-label" title="Renk ekle">
-          <input type="color" id="colorPicker" value="#ff6b35" />
-          <span>renk</span>
-        </label>
-        <button class="emoji-btn" data-emoji="🚀">🚀</button>
-        <button class="emoji-btn" data-emoji="✨">✨</button>
-        <button class="emoji-btn" data-emoji="🔥">🔥</button>
-        <button class="emoji-btn" data-emoji="❤️">❤️</button>
-        <button class="emoji-btn" data-emoji="⭐">⭐</button>
-        <button class="emoji-btn" data-emoji="🎬">🎬</button>
+      <div class="resim-test-bar">
+        <input type="text" id="resimUrl" placeholder="🖼️ Resim URL'sini buraya yapıştır ve test et..."
+               value="https://i.ibb.co/JjPFLbcP/Os-Code-Video.png" />
+        <button id="resimTestBtn" class="ghost" type="button">🔍 Test Et</button>
       </div>
 
       <textarea id="codeInput" spellcheck="false">@5s
@@ -93,12 +85,12 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
           <button data-ex="4">Filtre</button>
           <button data-ex="5">Konfeti</button>
           <button data-ex="6">Şimşek</button>
-          <button data-ex="7">Logo</button>
-          <button data-ex="8">Çoklu Sahne</button">
+          <button data-ex="7">🖼️ Logo</button>
+          <button data-ex="8">Çoklu Sahne</button>
           <button data-ex="9">Daktilo</button>
         </div>
         <div class="action-buttons">
-          <button id="clearBtn class="ghost">🗑️ Temizle</button>
+          <button id="clearBtn" class="ghost">🗑️ Temizle</button>
           <button id="howBtn" class="ghost how">❓ Nasıl yapılır?</button>
           <button id="cancelBtn" class="ghost danger" hidden>🛑 Durdur</button>
           <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
@@ -110,6 +102,12 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
       <a id="downloadBtn" class="primary download" download>⬇️ Videoyu İndir</a>
     </section>
   </main>
+
+  <!-- Geri Al Toast -->
+  <div class="toast" id="toast">
+    <span id="toastMsg">Temizlendi</span>
+    <button id="toastUndo" class="toast-undo">↩️ Geri Al</button>
+  </div>
 
   <div class="modal-overlay" id="howModal">
     <div class="modal">
@@ -125,16 +123,17 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
       </p>
 
       <div class="modal-code-wrap">
-        <pre class="modal-code" id="promptText">Sen bir animasyon kodu yazarısın. Aşağıdaki web sitesi koddan video üretir.
+        <pre class="modal-code" id="promptText">Sen OsCodeVideo için animasyon kodu yazan bir asistansın.
 
 Site: https://oscodevideo.onrender.com
+Kullanıcı kodu buraya yapıştırır, site videoya çevirir ve MP4/WebM indirir.
 
 DEĞİŞKENLER:
-- t: 0'dan 1'e giden animasyon değeri
-- W: sahne genişliği
-- H: sahne yüksekliği
+- t: 0'dan 1'e giden animasyon ilerlemesi
+- W: sahne genişliği (piksel)
+- H: sahne yüksekliği (piksel)
 
-ÇİZİM:
+TEMEL ÇİZİM:
 - arkaplan(renk)
 - daire(x, y, r, renk)
 - dikdortgen(x, y, w, h, renk)
@@ -142,11 +141,11 @@ DEĞİŞKENLER:
 - cizgi(x1, y1, x2, y2, renk, kalinlik)
 
 ŞEKİLLER:
-- yildiz(x, y, r, nokta, renk)
+- yildiz(x, y, r, noktaSayisi, renk)
 - kalp(x, y, boyut, renk)
 - ucgen(x1, y1, x2, y2, x3, y3, renk)
 - ok(x1, y1, x2, y2, renk, kalinlik)
-- cokgen(x, y, r, kenar, renk)
+- cokgen(x, y, yaricap, kenarSayisi, renk)
 - yildizPatlamasi(x, y, boyut, renk)
 - konfeti(x, y, sayi, boyut)
 - simsek(x1, y1, x2, y2, renk, kalinlik)
@@ -155,39 +154,52 @@ DEĞİŞKENLER:
 
 MEDYA:
 - emoji("🚀", x, y, boyut)
-- resim("https://...", x, y, w, h)
+- resim("https://...", x, y, w, h)   [URL CORS desteklemeli]
 
 YAZI ANİMASYONLARI:
-- daktilo(metin, x, y, boyut, renk)
-- kaydir(metin, x, y, boyut, renk)
-- yukariCik(metin, x, y, boyut, renk)
+- daktilo(metin, x, y, boyut, renk)    [harf harf yazılır]
+- kaydir(metin, x, y, boyut, renk)     [soldan sağa kayar]
+- yukariCik(metin, x, y, boyut, renk)  [aşağıdan yukarı çıkar]
 
 EFEKT:
 - gradient(renk1, renk2, "dikey"|"yatay"|"capraz")
 - golge(renk, blur, xOffset, yOffset)
 - golgeKapat()
-- bulanikla(px)
+- bulanikla(piksel)
 - siyahBeyaz()
 - sepya()
 - filtreKapat()
 - parcacik(x, y, sayi, renk, boyut)
 - titre(miktar)
 
-PALET:
-- renk("neon"|"gunbatimi"|"okyanus"|"ates"|"orman"|"pastel"|"gece"|"altin")
-  Array döner: ["#...", "#...", ...]
+HAZIR RENK PALETLERİ (array döner):
+- renk("neon")      - renk("gunbatimi")  - renk("okyanus")
+- renk("ates")      - renk("orman")      - renk("pastel")
+- renk("gece")      - renk("altin")
+Kullanım: const p = renk("neon"); daire(100, 100, 50, p[0]);
 
-ÇOKLU SAHNE:
-- --- satırı ile bölünür
+KURALLAR:
+- En üste süre yaz: @5s (max @60s)
+- Çoklu sahne için --- satırı ile böl
+- Her sahnenin başında kendi @Xs süresi olmalı
+- Sadece verilen fonksiyonları kullan, başka kütüphane yok
+- Renkleri hex ('#ff6b35') veya rgb('rgb(255,0,0)') olarak yaz
+- Metin ortalamak için x = W/2, y = H/2 kullan
 
-SÜRE:
-- En üste @5s yaz (örn @10s, max @60s)
-
-ÖRNEK:
+ÖRNEK 1 - Basit:
 @5s
 gradient('#0a0a1a', '#1a0033', 'dikey');
-const x = 100 + t * 900;
-daire(x, 360, 50, '#ff6b35');
+const x = 100 + t * (W - 200);
+daire(x, H/2, 50, '#ff6b35');
+
+ÖRNEK 2 - Çoklu sahne:
+@2s
+gradient('#ff6b35', '#ffd23f', 'dikey');
+yazi('Merhaba!', W/2, H/2, 90, '#fff');
+---
+@3s
+gradient('#6c8cff', '#a200ff', 'dikey');
+daktilo('OsCodeVideo', W/2, H/2, 90, '#fff');
 
 Şimdi benim için şu videoyu yap: [İSTEĞİNİ YAZ]</pre>
       </div>
@@ -198,6 +210,6 @@ daire(x, 360, 50, '#ff6b35');
     </div>
   </div>
 
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>
