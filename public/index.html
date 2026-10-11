@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="style.css?v=11" />
 </head>
 <body>
   <header>
@@ -82,6 +82,7 @@ daire(x, 360, 50, "#ff6b35");</textarea>
         </div>
         <div class="action-buttons">
           <button id="clearBtn" class="ghost">🗑️ Temizle</button>
+          <button id="howBtn" class="ghost how">❓ Nasıl yapılır?</button>
           <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
         </div>
       </div>
@@ -92,6 +93,74 @@ daire(x, 360, 50, "#ff6b35");</textarea>
     </section>
   </main>
 
-  <script src="app.js?v=9"></script>
+  <!-- ==================== NASIL YAPILIR MODAL ==================== -->
+  <div class="modal-overlay" id="howModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>❓ Nasıl Yapılır?</h2>
+        <button class="modal-close" id="modalClose" aria-label="Kapat">✕</button>
+      </div>
+
+      <p class="modal-desc">
+        Aşağıdaki metni <b>kopyala</b> ve <b>ChatGPT / Claude / Gemini</b>'ye yapıştır.
+        Sonunda <code>[İSTEĞİNİ YAZ]</code> kısmına ne istediğini yaz, sana
+        <b>OsCodeVideo</b> için hazır kod versin. Sonra o kodu buraya yapıştır, video olsun. 🎬
+      </p>
+
+      <div class="modal-code-wrap">
+        <pre class="modal-code" id="promptText">Sen bir animasyon kodu yazarısın. Aşağıdaki web sitesi koddan video üretir.
+
+Site: https://oscodevideo.onrender.com
+
+KULLANILABİLİR FONKSİYONLAR:
+
+DEĞİŞKENLER:
+- t: 0'dan 1'e giden animasyon değeri
+- W: sahne genişliği
+- H: sahne yüksekliği
+
+ÇİZİM:
+- arkaplan(renk)
+- daire(x, y, r, renk)
+- dikdortgen(x, y, w, h, renk)
+- yazi(metin, x, y, boyut, renk)
+- cizgi(x1, y1, x2, y2, renk, kalinlik)
+
+ŞEKİLLER:
+- yildiz(x, y, r, nokta, renk)
+- kalp(x, y, boyut, renk)
+- ucgen(x1, y1, x2, y2, x3, y3, renk)
+- ok(x1, y1, x2, y2, renk, kalinlik)
+- cokgen(x, y, r, kenar, renk)
+
+EMOJİ & RESİM:
+- emoji("🚀", x, y, boyut)
+- resim("url", x, y, w, h)
+
+YAZI ANİMASYONLARI:
+- daktilo(metin, x, y, boyut, renk)
+- kaydir(metin, x, y, boyut, renk)
+- yukariCik(metin, x, y, boyut, renk)
+
+ÖZEL:
+- Çoklu sahne: --- satırı ile bölünür
+- Süre: en üste @5s yaz (örn @10s, max @60s)
+
+ÖRNEK:
+@5s
+arkaplan('#0f1117');
+const x = 100 + t * 900;
+daire(x, 360, 50, '#ff6b35');
+
+Şimdi benim için şu videoyu yap: [İSTEĞİNİ YAZ]</pre>
+      </div>
+
+      <div class="modal-foot">
+        <button class="primary copy-btn" id="copyBtn">📋 Kopyala</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=11"></script>
 </body>
 </html>
