@@ -14,6 +14,7 @@
   /* ==================== AYARLAR ==================== */
   var FPS = 30;
   var MAX_SURE = 60;
+  var WATERMARK_MS = 5000; // Son 5 saniyede watermark görünür
   var BOYUTLAR = {
     "16:9": { w: 1280, h: 720 },
     "9:16": { w: 720,  h: 1280 },
@@ -347,6 +348,30 @@
     );
   }
 
+  /* ==================== WATERMARK (otomatik gömülü) ==================== */
+  function watermarkCiz(globalElapsedMs, toplamMs) {
+    var kalanMs = toplamMs - globalElapsedMs;
+    if (kalanMs > WATERMARK_MS) return;   // Henüz son 5 saniyeye gelmedi
+    if (kalanMs < 0) return;              // Video bitti
+
+    var elapsedSn = globalElapsedMs / 1000;
+    var alpha = 0.25 + Math.sin(elapsedSn * 10) * 0.1;
+
+    var boyut = Math.round(Math.min(W, H) * 0.11);
+    if (boyut < 30) boyut = 30;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = "#00d9ff";
+    ctx.shadowBlur = Math.round(boyut * 0.5);
+    ctx.fillStyle = "#00d9ff";
+    ctx.font = "bold " + boyut + "px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("OsCodeVideo", W / 2, H / 2);
+    ctx.restore();
+  }
+
   function drawIdle() {
     if (!ctx) return;
     ctx.fillStyle = "#0a0c12";
@@ -526,15 +551,19 @@
         progressBar.hidden = true; return;
       }
 
+      /* ====== WATERMARK: kullanıcı kodundan SONRA, son 5 saniyede ====== */
+      watermarkCiz(elapsed, toplamMs);
+
       var pct = Math.round(globalT * 100);
       progressFill.style.width = pct + "%";
       if (miniFill) miniFill.style.width = pct + "%";
       var kalan = Math.max(0, Math.ceil(analiz.toplamSure - elapsed / 1000));
 
       var sahneEtiket = sahneSayisi > 1 ? " [Sahne " + (hs.idx+1) + "/" + sahneSayisi + "]" : "";
+      var wmEtiket = (toplamMs - elapsed) <= WATERMARK_MS ? " <small>🔷</small>" : "";
       updateMessage(m3,
         "🏃 Animasyon oynatılıyor" + sahneEtiket + "... %" + pct +
-        " <small>(~" + kalan + " sn)</small>" +
+        " <small>(~" + kalan + " sn)</small>" + wmEtiket +
         '<div class="mini-bar"><div style="width:' + pct + '%"></div></div>'
       );
       generateBtn.textContent = "⚡ Üretiliyor... %" + pct;
@@ -576,6 +605,7 @@
       (blob.size / 1024 / 1024).toFixed(2) + " MB • ." + ext + ")</small>",
       "ok"
     );
+    addBotMessage("🔷 Son 5 saniyeye <b>OsCodeVideo</b> imzası otomatik gömüldü.", "ok");
     addBotMessage("İndirmek için alttaki ⬇️ butonuna bas.", "ok");
 
     generateBtn.disabled = false;
@@ -589,5 +619,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("✅ OsCodeVideo hazır (v9)");
+  console.log("✅ OsCodeVideo hazır (v10 - watermark)");
 })();
