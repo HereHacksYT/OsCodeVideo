@@ -661,35 +661,31 @@
     return Promise.all(promises);
   }
 
-  /* ==================== WATERMARK ==================== */
+  /* ==================== WATERMARK (dengeli) ==================== */
   function watermarkCiz(globalElapsedMs, toplamMs) {
     var kalanMs = toplamMs - globalElapsedMs;
     if (kalanMs < 0) return;
 
-    // Kısa videolarda (< WATERMARK_MS) tamamında göster,
-    // uzun videolarda sadece son WATERMARK_MS milisaniyede göster
+    // Kısa videolarda tamamında, uzunlarda son 5 sn'de
     var gostermeSuresi = Math.min(WATERMARK_MS, toplamMs);
     if (kalanMs > gostermeSuresi) return;
 
     var elapsedSn = globalElapsedMs / 1000;
-    // Belirgin nabız: 0.55 - 0.85 arası
-    var alpha = 0.7 + Math.sin(elapsedSn * 6) * 0.15;
+    // Yumuşak nabız: 0.34 - 0.50 arası (orta görünürlük)
+    var alpha = 0.42 + Math.sin(elapsedSn * 5) * 0.08;
 
-    var boyut = Math.round(Math.min(W, H) * 0.14);
-    if (boyut < 40) boyut = 40;
+    var boyut = Math.round(Math.min(W, H) * 0.11);
+    if (boyut < 32) boyut = 32;
 
     ctx.save();
     ctx.globalAlpha = alpha;
-    // Siyah gölge → arkaplandan net ayrışsın
+    // Hafif siyah gölge (kontrast için)
     ctx.shadowColor = "#000";
-    ctx.shadowBlur = Math.round(boyut * 0.6);
+    ctx.shadowBlur = Math.round(boyut * 0.25);
     ctx.fillStyle = "#00d9ff";
     ctx.font = "bold " + boyut + "px system-ui, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    // 3 kez üst üste çiz → parlak görünsün
-    ctx.fillText("OsCodeVideo", W / 2, H / 2);
-    ctx.fillText("OsCodeVideo", W / 2, H / 2);
     ctx.fillText("OsCodeVideo", W / 2, H / 2);
     ctx.restore();
   }
@@ -971,5 +967,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("✅ OsCodeVideo hazır (v16 - belirgin watermark)");
+  console.log("✅ OsCodeVideo hazır (v17 - dengeli watermark)");
 })();
