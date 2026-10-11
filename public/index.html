@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css?v=22" />
+  <title>OsCodeVideo - Koddan Video Uret</title>
+  <link rel="stylesheet" href="style.css?v=23" />
 </head>
 <body>
+  <div id="hata" style="display:none;position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:10px 14px;font-size:12px;font-family:monospace;z-index:9999;word-break:break-all"></div>
+
   <header>
     <div class="logo">🎬 OsCode<span>Video</span></div>
     <div class="header-right">
       <span class="tagline">koddan video üret</span>
-      <button id="themeBtn" class="icon-btn" title="Tema değiştir">🌙</button>
+      <button id="themeBtn" class="icon-btn" title="Tema">🌙</button>
     </div>
   </header>
 
@@ -45,7 +47,7 @@
         <div class="bubble">
           Merhaba! Kodunu yaz, sana video yapayım.<br />
           <small>
-            <b>Değişkenler:</b> <code>t</code> (0→1), <code>W</code>, <code>H</code><br />
+            <b>Değişkenler:</b> <code>t</code> (0-1), <code>W</code>, <code>H</code><br />
             <b>Çizim:</b> <code>daire</code> <code>dikdortgen</code> <code>yazi</code>
             <code>cizgi</code> <code>arkaplan</code><br />
             <b>Şekiller:</b> <code>yildiz</code> <code>kalp</code> <code>ucgen</code>
@@ -56,8 +58,8 @@
             <b>Efekt:</b> <code>gradient</code> <code>golge</code> <code>golgeKapat</code>
             <code>bulanikla</code> <code>siyahBeyaz</code> <code>sepya</code>
             <code>filtreKapat</code> <code>parcacik</code> <code>titre</code><br />
-            <b>Palet:</b> <code>renk("neon")</code> → array döner<br />
-            <b>Çoklu sahne:</b> <code>---</code> ile böl • Süre: <code>@5s</code> (max 60)
+            <b>Palet:</b> <code>renk("neon")</code> - array döner<br />
+            <b>Çoklu sahne:</b> <code>---</code> ile böl - Süre: <code>@5s</code> (max 60)
           </small>
         </div>
       </div>
@@ -74,15 +76,15 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
           <span>Örnekler:</span>
           <button data-ex="0">Top</button>
           <button data-ex="1">Gradient</button>
-          <button data-ex="2">Parçacık</button>
-          <button data-ex="3">Gölge</button>
+          <button data-ex="2">Parcacik</button>
+          <button data-ex="3">Golge</button>
           <button data-ex="4">Filtre</button>
           <button data-ex="5">Konfeti</button>
-          <button data-ex="6">Şimşek</button>
-          <button data-ex="7">🖼️ Logo</button>
-          <button data-ex="8">Çoklu Sahne</button>
+          <button data-ex="6">Simsek</button>
+          <button data-ex="7">Logo</button>
+          <button data-ex="8">Coklu Sahne</button>
           <button data-ex="9">Daktilo</button>
-          <button data-ex="10">🎤 Konuşma</button>
+          <button data-ex="10">Konusma</button>
         </div>
         <div class="action-buttons">
           <button id="clearBtn" class="ghost">🗑️ Temizle</button>
@@ -112,7 +114,7 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
 
       <p class="modal-desc">
         Aşağıdaki metni <b>kopyala</b> ve <b>ChatGPT / Claude / Gemini</b>'ye yapıştır.
-        Sonunda <code>[İSTEĞİNİ YAZ]</code> kısmına ne istediğini yaz, sana
+        Sonunda <code>[ISTEGINI YAZ]</code> kısmına ne istediğini yaz, sana
         <b>OsCodeVideo</b> için hazır kod versin. 🎬
       </p>
 
@@ -146,51 +148,31 @@ TEMEL ÇİZİM:
 - bulut(x, y, boyut, renk)
 - gunes(x, y, yaricap, renk)
 
-SESLENDİRME (TTS) - ÖNEMLİ:
+SESLENDİRME (TTS):
 - seslendir("Metin", "tr")
-- Belirtilen metni sese çevirir ve videoya gömer
-- yazi() fonksiyonu SESSİZDİR, sadece görüntü verir
-- Desteklenen diller: tr, en, de, fr, es, it, ru, ar, ja, ko, zh
-- Metin ~200 karakter olmalı
+- Belirtilen metni sese cevirir ve videoya gomer
+- yazi() SESSIZDIR, sadece goruntu verir
+- Diller: tr, en, de, fr, es, it, ru, ar, ja, ko, zh
+- Metin 200 karakteri gecmesin
 
-  ÖRNEK 1 - Yazı + ses:
+  ORNEK:
   @5s
   arkaplan('#0f1117');
-  seslendir('Merhaba dünya!', 'tr');
-  yazi('Merhaba dünya!', W/2, H/2, 80, '#fff');
-
-  ÖRNEK 2 - Sadece bazı yazılar sesli:
-  @5s
-  gradient('#0a0a1a', '#1a0033', 'dikey');
-  seslendir('Hoş geldiniz', 'tr');
-  yazi('Hoş geldiniz', W/2, H/2 - 60, 70, '#00d9ff');
-  yazi('OsCodeVideo', W/2, H/2 + 60, 50, '#6c8cff'); // sessiz
+  seslendir('Merhaba dunya!', 'tr');
+  yazi('Merhaba dunya!', W/2, H/2, 80, '#fff');
 
 MEDYA - EMOJI:
 - emoji("🚀", x, y, boyut)
-  Örnek: emoji("🔥", W/2, H/2, 120);
 
-MEDYA - RESİM (URL'den görsel gösterme):
+MEDYA - RESIM:
 - resim(url, x, y, w, h)
-- URL mutlaka CORS desteklemeli
-- Önerilen hosting: imgur.com, i.ibb.co, cloudinary
+- URL CORS desteklemeli (imgur, i.ibb.co, cloudinary)
+- Ornek: resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - 150, H/2 - 150, 300, 300);
 
-  ÖRNEK - Ortada tam boyutta:
-  @5s
-  arkaplan('#0f1117');
-  const b = Math.min(W, H) * 0.55;
-  resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png',
-        W/2 - b/2, H/2 - b/2, b, b);
-
-  ÖRNEK - Köşede küçük logo:
-  @5s
-  gradient('#0a0a1a', '#1a0033', 'dikey');
-  resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', 30, 30, 80, 80);
-
-YAZI ANİMASYONLARI:
-- daktilo(metin, x, y, boyut, renk)    [harf harf yazılır]
-- kaydir(metin, x, y, boyut, renk)     [soldan sağa kayar]
-- yukariCik(metin, x, y, boyut, renk)  [aşağıdan yukarı çıkar]
+YAZI ANIMASYONLARI:
+- daktilo(metin, x, y, boyut, renk)
+- kaydir(metin, x, y, boyut, renk)
+- yukariCik(metin, x, y, boyut, renk)
 
 EFEKT:
 - gradient(renk1, renk2, "dikey"|"yatay"|"capraz")
@@ -203,59 +185,37 @@ EFEKT:
 - parcacik(x, y, sayi, renk, boyut)
 - titre(miktar)
 
-HAZIR RENK PALETLERİ (array döner):
-- renk("neon")      - renk("gunbatimi")  - renk("okyanus")
-- renk("ates")      - renk("orman")      - renk("pastel")
-- renk("gece")      - renk("altin")
-Kullanım: const p = renk("neon"); daire(100, 100, 50, p[0]);
+RENK PALETLERI (array doner):
+- renk("neon") renk("gunbatimi") renk("okyanus")
+- renk("ates") renk("orman") renk("pastel")
+- renk("gece") renk("altin")
+Kullanim: const p = renk("neon"); daire(100, 100, 50, p[0]);
 
 KURALLAR:
-- En üste süre yaz: @5s (max @60s)
-- Çoklu sahne için --- satırı ile böl
-- Her sahnenin başında kendi @Xs süresi olmalı
-- Sadece verilen fonksiyonları kullan, başka kütüphane yok
-- Renkleri hex ('#ff6b35') veya rgb('rgb(255,0,0)') yaz
-- Metin ortalamak için x = W/2, y = H/2 kullan
-- Resim kullanacaksan MUTLAKA CORS destekleyen URL seç
-- Seslendirme metni kısa tut (max ~200 karakter)
-- Her seslendir() çağrısı sadece bir kez çalar
+- En uste sure yaz: @5s (max @60s)
+- Coklu sahne icin --- satiri ile bol
+- Sadece verilen fonksiyonlari kullan
+- Renkleri hex ('#ff6b35') yaz
+- Metin ortalama icin x = W/2, y = H/2 kullan
+- Resim URL'si MUTLAKA CORS desteklemeli
+- Seslendirme metni kisa olsun
 
-ÖRNEK - Basit:
+ORNEK - Basit:
 @5s
 gradient('#0a0a1a', '#1a0033', 'dikey');
 const x = 100 + t * (W - 200);
 daire(x, H/2, 50, '#ff6b35');
 
-ÖRNEK - Çoklu sahne:
-@2s
-gradient('#ff6b35', '#ffd23f', 'dikey');
-yazi('Merhaba!', W/2, H/2, 90, '#fff');
----
-@3s
-gradient('#6c8cff', '#a200ff', 'dikey');
-daktilo('OsCodeVideo', W/2, H/2, 90, '#fff');
-
-ÖRNEK - Logo + efekt:
+ORNEK - Sesli tanitim:
 @6s
 gradient('#0a0a1a', '#1a0033', 'capraz');
-const b = Math.min(W, H) * 0.4;
-const s = 1 + Math.sin(t * Math.PI * 4) * 0.1;
-golge('#00d9ff', 40, 0, 0);
-resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png',
-      W/2 - (b*s)/2, H/2 - (b*s)/2 - 40, b*s, b*s);
-golgeKapat();
-yazi('OsCodeVideo', W/2, H/2 + 250, 50, '#00d9ff');
-
-ÖRNEK - Sesli tanıtım:
-@6s
-gradient('#0a0a1a', '#1a0033', 'capraz');
-seslendir('Merhaba, OsCodeVideo kanalına hoş geldiniz!', 'tr');
+seslendir('Merhaba, OsCodeVideo kanalina hos geldiniz!', 'tr');
 golge('#00d9ff', 40, 0, 0);
 yildiz(W/2, H/2, 150, 5, '#00d9ff');
 golgeKapat();
-yazi('Hoş Geldiniz!', W/2, H - 120, 60, '#fff');
+yazi('Hos Geldiniz!', W/2, H - 120, 60, '#fff');
 
-Şimdi benim için şu videoyu yap: [İSTEĞİNİ YAZ]</pre>
+Şimd benim icin su videoyu yap: [ISTEGINI YAZ]</pre>
       </div>
 
       <div class="modal-foot">
@@ -264,6 +224,6 @@ yazi('Hoş Geldiniz!', W/2, H - 120, 60, '#fff');
     </div>
   </div>
 
-  <script src="app.js?v=22"></script>
+  <script src="app.js?v=23"></script>
 </body>
 </html>
