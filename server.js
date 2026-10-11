@@ -8,6 +8,6 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/healthz", (req, res) => res.send("OK"));
 
-app.listen(PORT, () => {
+app.listen(PORT, function () {
   console.log("🎬 OsCodeVideo " + PORT + " portunda çalışıyor");
 });
