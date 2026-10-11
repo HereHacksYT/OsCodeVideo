@@ -32,8 +32,6 @@
   var howBtn       = $("howBtn");
   var cancelBtn    = $("cancelBtn");
   var themeBtn     = $("themeBtn");
-  var resimUrl     = $("resimUrl");
-  var resimTestBtn = $("resimTestBtn");
   var canvas       = $("renderCanvas");
   var previewVideo = $("previewVideo");
   var resultSec    = $("resultSection");
@@ -151,102 +149,6 @@
         copyBtn.textContent = "❌ Kopyalanamadı";
         setTimeout(function () { copyBtn.textContent = "📋 Kopyala"; }, 2000);
       }
-    });
-  }
-
-  /* ==================== RESİM TEST ==================== */
-  if (resimTestBtn && resimUrl) {
-    resimTestBtn.addEventListener("click", function () {
-      var url = resimUrl.value.trim();
-      if (!url) {
-        toastGoster("⚠️ Önce bir URL gir");
-        return;
-      }
-      resimTestBtn.disabled = true;
-      resimTestBtn.textContent = "⏳ Test ediliyor...";
-
-      // Chat'e mesaj ekle
-      clearVideoChat();
-      var m = addBotMessage('<span class="spinner"></span> 🖼️ Resim test ediliyor...');
-
-      var img = new Image();
-      img.crossOrigin = "anonymous";
-      var bitti = false;
-
-      var zamanAsimi = setTimeout(function () {
-        if (bitti) return;
-        bitti = true;
-        updateMessage(m, "❌ <b>Zaman aşımı</b> — Resim 8 saniyede yüklenmedi. URL doğru mu?", "err");
-        resimTestBtn.disabled = false;
-        resimTestBtn.textContent = "🔍 Test Et";
-      }, 8000);
-
-      img.onload = function () {
-        if (bitti) return;
-        bitti = true;
-        clearTimeout(zamanAsimi);
-
-        // Canvas'a çizip taint kontrolü yap
-        try {
-          var testCanvas = document.createElement("canvas");
-          testCanvas.width = 4; testCanvas.height = 4;
-          var tc = testCanvas.getContext("2d");
-          tc.drawImage(img, 0, 0, 4, 4);
-          testCanvas.toDataURL(); // taint kontrolü
-
-          // Boyutları al
-          var bw = img.naturalWidth;
-          var bh = img.naturalHeight;
-
-          // Stage'de önizleme göster
-          ctx.fillStyle = "#0a0c12";
-          ctx.fillRect(0, 0, W, H);
-          var maxBoyut = Math.min(W, H) * 0.8;
-          var oran = bw / bh;
-          var cw = maxBoyut, ch = maxBoyut;
-          if (oran > 1) { ch = maxBoyut / oran; } else { cw = maxBoyut * oran; }
-          ctx.drawImage(img, (W - cw) / 2, (H - ch) / 2, cw, ch);
-
-          // Önizlemeyi göster
-          if (previewVideo) previewVideo.hidden = true;
-          if (canvas) canvas.style.display = "block";
-          if (resultSec) resultSec.hidden = true;
-
-          updateMessage(m,
-            "✅ <b>Resim başarıyla yüklendi!</b><br>" +
-            "<small>📐 Boyut: " + bw + "×" + bh + " px<br>" +
-            "🔒 CORS: Destekleniyor (videoda kullanılabilir)<br>" +
-            "👁️ Önizleme yukarıda gösteriliyor</small>",
-            "ok"
-          );
-        } catch (err) {
-          updateMessage(m,
-            "⚠️ <b>Resim yüklendi ama CORS engeli var.</b><br>" +
-            "<small>Yani önizlemede görünür ama <b>videoya kaydedilemez</b>.<br>" +
-            "Çözüm: Resmi CORS destekleyen bir yere yükle (imgur, i.ibb.co vb.)<br>" +
-            "Hata: <code>" + escapeHtml(err.message) + "</code></small>",
-            "err"
-          );
-        }
-
-        resimTestBtn.disabled = false;
-        resimTestBtn.textContent = "🔍 Test Et";
-      };
-
-      img.onerror = function () {
-        if (bitti) return;
-        bitti = true;
-        clearTimeout(zamanAsimi);
-        updateMessage(m,
-          "❌ <b>Resim yüklenemedi</b><br>" +
-          "<small>URL yanlış, erişilemiyor veya engellenmiş olabilir.</small>",
-          "err"
-        );
-        resimTestBtn.disabled = false;
-        resimTestBtn.textContent = "🔍 Test Et";
-      };
-
-      img.src = url;
     });
   }
 
@@ -1059,5 +961,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("✅ OsCodeVideo hazır (v13)");
+  console.log("✅ OsCodeVideo hazır (v15)");
 })();
