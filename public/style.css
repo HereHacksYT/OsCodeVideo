@@ -1,5 +1,5 @@
 /* ============================================================
-   OsCodeVideo — style.css (tam)
+   OsCodeVideo — style.css (tam, v13)
    ============================================================ */
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -39,17 +39,11 @@ header {
 .tagline { color:var(--muted); font-size:13px; }
 
 .icon-btn {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--text);
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 16px;
-  display: grid; place-items: center;
-  transition: all .15s;
-  padding: 0;
-  font-family: inherit;
+  background: var(--panel); border: 1px solid var(--border);
+  color: var(--text); width: 36px; height: 36px;
+  border-radius: 10px; cursor: pointer; font-size: 16px;
+  display: grid; place-items: center; transition: all .15s;
+  padding: 0; font-family: inherit;
 }
 .icon-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
 
@@ -122,47 +116,43 @@ main {
 .bubble.ok { border-color:#22c55e55; }
 .bubble.err { border-color:#ef444488; color:#ffd0d0; }
 
+/* ==================== Resim Test Bar ==================== */
+.resim-test-bar {
+  display:flex; gap:8px; align-items:center;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+#resimUrl {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  padding: 6px 4px;
+  min-width: 0;
+}
+#resimUrl::placeholder { color: var(--muted); }
+#resimTestBtn {
+  padding: 6px 12px;
+  font-size: 12.5px;
+  white-space: nowrap;
+  border-radius: 8px;
+}
+#resimTestBtn:hover {
+  color: var(--text) !important;
+  border-color: var(--accent) !important;
+}
+
 /* ==================== Input ==================== */
 .input-area {
   background:var(--panel); border:1px solid var(--border);
   border-radius:16px; padding:14px;
   display:flex; flex-direction:column; gap:12px;
 }
-
-.editor-toolbar {
-  display:flex; gap:6px; align-items:center; flex-wrap:wrap;
-  padding: 8px 10px; background: var(--bg);
-  border:1px solid var(--border); border-radius:10px;
-}
-.editor-toolbar .label { font-size:12px; color: var(--muted); margin-right: 4px; }
-
-.color-label {
-  display:inline-flex; align-items:center; gap:6px;
-  background: var(--panel-2); padding: 4px 10px;
-  border-radius: 8px; cursor:pointer; font-size: 12px;
-  border:1px solid var(--border); color: var(--text);
-  transition: border-color .15s;
-}
-.color-label:hover { border-color: var(--accent); }
-.color-label input[type="color"] {
-  width: 24px; height: 24px; border: none;
-  background: transparent; cursor: pointer; padding: 0;
-  border-radius: 6px;
-}
-.color-label input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-.color-label input[type="color"]::-webkit-color-swatch {
-  border: none; border-radius: 6px;
-}
-
-.emoji-btn {
-  background: var(--panel-2); border:1px solid var(--border);
-  width: 32px; height: 32px; border-radius: 8px;
-  cursor: pointer; font-size: 15px; padding: 0;
-  display: grid; place-items: center;
-  transition: all .15s; font-family: inherit;
-}
-.emoji-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
-
 #codeInput {
   width:100%; min-height:160px; resize:vertical;
   background:var(--bg); color:#c8d2ff;
@@ -262,6 +252,32 @@ html[data-theme="light"] #codeInput { color: #4a5fd1; }
 }
 @keyframes sp { to{transform:rotate(360deg)} }
 
+/* ==================== Toast (Geri Al) ==================== */
+.toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  z-index: 500;
+  transition: transform .3s ease;
+  font-size: 13.5px;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast-undo {
+  background: var(--accent);
+  color: #fff; border: none;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  white-space: nowrap;
+}
+.toast-undo:hover { background: #8a63ff; }
+
 /* ==================== Modal ==================== */
 .modal-overlay {
   position: fixed; inset: 0;
@@ -342,6 +358,17 @@ html[data-theme="light"] .modal-code { color: #4a5fd1; }
   .action-buttons { width:100%; }
   .action-buttons .primary,
   .action-buttons .ghost { flex:1; text-align:center; }
+
+  .resim-test-bar { flex-wrap: wrap; }
+  #resimUrl { font-size: 12.5px; }
+
+  .toast {
+    bottom: 16px;
+    left: 16px; right: 16px;
+    transform: translateY(120%);
+    max-width: none;
+  }
+  .toast.show { transform: translateY(0); }
 
   .modal-overlay { padding: 10px; }
   .modal { max-height: 92vh; border-radius: 14px; }
