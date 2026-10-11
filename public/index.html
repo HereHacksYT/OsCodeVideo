@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo — Koddan Video Üret</title>
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <header>
@@ -21,19 +21,45 @@
       </div>
     </section>
 
+    <section class="controls">
+      <div class="control-group">
+        <label>📐 Boyut</label>
+        <div class="size-picker" id="sizePicker">
+          <button data-size="16:9" class="active">16:9</button>
+          <button data-size="9:16">9:16</button>
+          <button data-size="1:1">1:1</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <label>⏱️ Süre</label>
+        <span class="sure-bilgi" id="sureBilgi">~5 sn</span>
+      </div>
+    </section>
+
     <section class="chat" id="chatLog">
       <div class="bot-msg" id="welcomeMsg">
         <div class="avatar">🤖</div>
         <div class="bubble">
           Merhaba! Kodunu yaz, sana video yapayım.<br />
           <small>
-            <code>t</code> değişkeni 0'dan 1'e gider.<br />
-            <code>daire(x,y,r,renk)</code>
+            <b>Değişkenler:</b> <code>t</code> (0→1), <code>W</code>, <code>H</code><br />
+            <b>Çizim:</b> <code>daire(x,y,r,renk)</code>
             <code>dikdortgen(x,y,w,h,renk)</code>
             <code>yazi(metin,x,y,boyut,renk)</code>
             <code>cizgi(x1,y1,x2,y2,renk,kalinlik)</code>
             <code>arkaplan(renk)</code><br />
-            Süre: en üste <code>@5s</code> yaz (max 30 sn).
+            <b>Şekiller:</b> <code>yildiz(x,y,r,nokta,renk)</code>
+            <code>kalp(x,y,boyut,renk)</code>
+            <code>ucgen(x1,y1,x2,y2,x3,y3,renk)</code>
+            <code>ok(x1,y1,x2,y2,renk,kalinlik)</code>
+            <code>cokgen(x,y,r,kenar,renk)</code><br />
+            <b>Emoji & Resim:</b> <code>emoji("🚀",x,y,boyut)</code>
+            <code>resim("url",x,y,w,h)</code><br />
+            <b>Yazı animasyon:</b> <code>daktilo(metin,x,y,boyut,renk)</code>
+            <code>kaydir(metin,x,y,boyut,renk)</code>
+            <code>yukariCik(metin,x,y,boyut,renk)</code><br />
+            <b>Çoklu sahne:</b> <code>---</code> satırı ile böl<br />
+            Süre: en üste <code>@5s</code> yaz (max 60 sn).
           </small>
         </div>
       </div>
@@ -49,10 +75,15 @@ daire(x, 360, 50, "#ff6b35");</textarea>
           <button data-ex="0">Top</button>
           <button data-ex="1">Zıplayan</button>
           <button data-ex="2">Yazı</button>
-          <button data-ex="3">Renk</button>
-          <button data-ex="4">Kare</button>
+          <button data-ex="3">Emoji</button>
+          <button data-ex="4">Kalp</button>
+          <button data-ex="5">Çoklu Sahne</button>
+          <button data-ex="6">Daktilo</button>
         </div>
-        <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
+        <div class="action-buttons">
+          <button id="clearBtn" class="ghost">🗑️ Temizle</button>
+          <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
+        </div>
       </div>
     </section>
 
@@ -61,6 +92,6 @@ daire(x, 360, 50, "#ff6b35");</textarea>
     </section>
   </main>
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
