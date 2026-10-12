@@ -31,6 +31,7 @@
   var clearBtn     = $("clearBtn");
   var howBtn       = $("howBtn");
   var cancelBtn    = $("cancelBtn");
+  var paylasBtn    = $("paylasBtn");
   var themeBtn     = $("themeBtn");
   var canvas       = $("renderCanvas");
   var previewVideo = $("previewVideo");
@@ -198,7 +199,6 @@
     "@5s\narkaplan('#0f1117');\nconst b = Math.min(W, H) * 0.55;\nresim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - b/2, H/2 - b/2, b, b);",
     "@2s\ngradient('#ff6b35', '#ffd23f', 'dikey');\nyazi('Merhaba!', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#6c8cff', '#a200ff', 'dikey');\nyazi('OsCodeVideo', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#22c55e', '#16a34a', 'dikey');\nyazi('Hos geldin!', W/2, H/2, 90, '#fff');",
     "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d9ff');",
-    "@5s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nseslendir('Merhaba, hos geldiniz!', 'tr');\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.1;\ngolge('#00d9ff', 40, 0, 0);\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\ngolgeKapat();\nyazi('Hos Geldiniz!', W/2, H - 120, 60, '#fff');",
     "@6s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nmuzik('do mi sol do2', 120, true);\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.1;\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\nyazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');"
   ];
 
@@ -223,7 +223,19 @@
   function kodKaydet() {
     try { localStorage.setItem(LS_KEY, codeInput.value); } catch (e) {}
   }
+
   function kodYukle() {
+    try {
+      var m = location.search.match(/[?&]k=([^&]+)/);
+      if (m) {
+        var kod = decodeURIComponent(escape(atob(m[1])));
+        if (kod && kod.trim()) {
+          codeInput.value = kod;
+          try { history.replaceState(null, "", location.pathname); } catch (e) {}
+          return;
+        }
+      }
+    } catch (e) {}
     try {
       var k = localStorage.getItem(LS_KEY);
       if (k) codeInput.value = k;
@@ -252,6 +264,32 @@
       toastGoster("Kod temizlendi", function () {
         codeInput.value = eskiKod; kodKaydet(); sureGuncelle();
       });
+    });
+  }
+
+  if (paylasBtn && codeInput) {
+    paylasBtn.addEventListener("click", function () {
+      try {
+        var kod = codeInput.value || "";
+        if (!kod.trim()) {
+          toastGoster("Kod bos, paylasilacak sey yok");
+          return;
+        }
+        var kod64 = btoa(unescape(encodeURIComponent(kod)));
+        var link = location.origin + location.pathname + "?k=" + kod64;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(link).then(function () {
+            toastGoster("Link kopyalandi! Arkadaslarina gonder.");
+          }).catch(function () {
+            window.prompt("Linki kopyala:", link);
+          });
+        } else {
+          window.prompt("Linki kopyala:", link);
+        }
+      } catch (e) {
+        toastGoster("Link olusturulamadi");
+      }
     });
   }
 
@@ -286,9 +324,11 @@
     else sureBilgi.style.color = "";
   }
 
+  var imgCache = {};
+  var state = { t: 0, muzikCalindi: {} };
+
   var sesCtx = null;
   var sesDest = null;
-  var sesBuffers = {};
   var sesSources = [];
 
   var NOTA = {
@@ -334,47 +374,6 @@
       sesCtx = null; sesDest = null;
       return false;
     }
-  }
-
-  function sesIndir(text, lang) {
-    if (!sesCtx) return Promise.resolve(null);
-    var key = text + "|" + lang;
-    if (sesBuffers[key]) return Promise.resolve(sesBuffers[key]);
-    var url = "https://translate.google.com/translate_tts?ie=UTF-8&q=" +
-              encodeURIComponent(text) + "&tl=" + lang + "&client=tw-ob";
-    return fetch(url, { mode: "cors" })
-      .then(function (res) {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.arrayBuffer();
-      })
-      .then(function (ab) {
-        return new Promise(function (resolve, reject) {
-          sesCtx.decodeAudioData(ab.slice(0), resolve, reject);
-        });
-      })
-      .then(function (audioBuf) {
-        sesBuffers[key] = audioBuf;
-        return audioBuf;
-      })
-      .catch(function (e) { return null; });
-  }
-
-  function sesCal(text, lang) {
-    if (!sesCtx || !sesDest) return;
-    var buf = sesBuffers[text + "|" + lang];
-    if (!buf) return;
-    try {
-      var src = sesCtx.createBufferSource();
-      src.buffer = buf;
-      src.connect(sesDest);
-      src.connect(sesCtx.destination);
-      src.start(0);
-      sesSources.push(src);
-      src.onended = function () {
-        var i = sesSources.indexOf(src);
-        if (i >= 0) sesSources.splice(i, 1);
-      };
-    } catch (e) {}
   }
 
   function muzikCal(notalarStr, bpm, dongu) {
@@ -431,26 +430,6 @@
     }
     sesSources = [];
   }
-
-  function sesleriOnYukle(code) {
-    var re = /seslendir\s*\(\s*["']([^"']+)["']\s*(?:,\s*["']([^"']+)["'])?\s*\)/g;
-    var m;
-    var promises = [];
-    var seen = {};
-    while ((m = re.exec(code)) !== null) {
-      var text = m[1];
-      var lang = m[2] || "tr";
-      var key = text + "|" + lang;
-      if (!seen[key]) {
-        seen[key] = true;
-        promises.push(sesIndir(text, lang));
-      }
-    }
-    return Promise.all(promises);
-  }
-
-  var imgCache = {};
-  var state = { t: 0, seslendirilenler: {}, muzikCalindi: {} };
 
   function makeHelpers() {
     return {
@@ -695,11 +674,8 @@
         return p.slice();
       },
       seslendir: function (metin, dil) {
-        dil = dil || "tr";
-        var key = metin + "|" + dil;
-        if (state.seslendirilenler[key]) return;
-        state.seslendirilenler[key] = true;
-        sesCal(metin, dil);
+        // Ses ozelligi devre disi - uzerinde calisiliyor
+        return;
       },
       muzik: function (notalar, bpm, dongu) {
         var key = notalar + "|" + (bpm || 120) + "|" + (dongu ? "1" : "0");
@@ -851,23 +827,16 @@
     generateBtn.textContent = "Uretiliyor...";
 
     var sahneSayisi = derlenmis.length;
-
     var resimVar = /resim\s*\(/.test(raw);
-    var sesVar = /seslendir\s*\(/.test(raw);
     var muzikVar = /muzik\s*\(/.test(raw);
-    var sesGerekli = sesVar || muzikVar;
 
     var sesAktif = false;
-    if (sesGerekli) {
+    if (muzikVar) {
       sesAktif = sesKur();
-      if (!sesAktif) {
-        addBotMessage("Not: Ses baslatilamadi, video sessiz olacak.");
-      }
     }
 
     var m1 = addBotMessage('<span class="spinner"></span> Hazirlik...');
     if (resimVar) await resimleriOnYukle(raw);
-    if (sesVar && sesAktif) await sesleriOnYukle(raw);
     updateMessage(m1, "Hazirlik tamam");
 
     if (iptalEdildi) { uretimBitti(); return; }
@@ -881,10 +850,9 @@
     var m3 = addBotMessage('<span class="spinner"></span> Animasyon...<div class="mini-bar"><div></div></div>');
     var miniFill = m3 ? m3.querySelector(".mini-bar > div") : null;
 
-    state.seslendirilenler = {};
-    state.muzikCalindi = {};
     ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
     state.t = 0;
+    state.muzikCalindi = {};
     try {
       derlenmis[0].fn(ctx, 0, 0, derlenmis[0].duration, W, H, makeHelpers());
     } catch (e) {
@@ -896,15 +864,15 @@
 
     var stream, rec;
     try {
-      var canvasStream = canvas.captureStream(FPS);
-      var tracks = canvasStream.getVideoTracks().slice();
-
+      stream = canvas.captureStream(FPS);
       if (sesAktif && sesDest) {
-        var audioTracks = sesDest.stream.getAudioTracks();
-        for (var ai = 0; ai < audioTracks.length; ai++) tracks.push(audioTracks[ai]);
+        try {
+          var audioTracks = sesDest.stream.getAudioTracks();
+          for (var ai = 0; ai < audioTracks.length; ai++) {
+            stream.addTrack(audioTracks[ai]);
+          }
+        } catch (e) {}
       }
-
-      stream = new MediaStream(tracks);
       rec = new MediaRecorder(stream, { mimeType: mime });
     } catch (e) {
       updateMessage(m3, "MediaRecorder hatasi: " + escapeHtml(e.message), "err");
@@ -1045,5 +1013,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("OsCodeVideo hazir v28");
+  console.log("OsCodeVideo hazir v31");
 })();
