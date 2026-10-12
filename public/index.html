@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo</title>
-  <link rel="stylesheet" href="style.css?v=29" />
+  <link rel="stylesheet" href="style.css?v=31" />
 </head>
 <body>
   <header>
@@ -51,13 +51,14 @@
             <b>Şekiller:</b> <code>yildiz</code> <code>kalp</code> <code>ucgen</code>
             <code>ok</code> <code>cokgen</code> <code>yildizPatlamasi</code>
             <code>konfeti</code> <code>simsek</code> <code>bulut</code> <code>gunes</code><br />
-            <b>Medya:</b> <code>emoji</code> <code>resim</code> <code>seslendir</code><br />
+            <b>Medya:</b> <code>emoji</code> <code>resim</code><br />
             <b>Ses:</b> <code>muzik</code> 🎵<br />
             <b>Yazı:</b> <code>daktilo</code> <code>kaydir</code> <code>yukariCik</code><br />
             <b>Efekt:</b> <code>golge</code> <code>bulanikla</code> <code>parcacik</code>
             <code>titre</code><br />
             <b>Palet:</b> <code>renk("neon")</code><br />
-            <b>Çoklu sahne:</b> <code>---</code> ile böl
+            <b>Çoklu sahne:</b> <code>---</code> ile böl<br />
+            <b style="color:#ef4444">⚠️ Seslendirme (seslendir) şu an çalışmıyor — üstünde çalışıyorum. Müzik çalışıyor. 🎵</b>
           </small>
         </div>
       </div>
@@ -82,10 +83,10 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
           <button data-ex="7">Logo</button>
           <button data-ex="8">Çoklu Sahne</button>
           <button data-ex="9">Daktilo</button>
-          <button data-ex="10">🎤 Konuşma</button>
-          <button data-ex="11">🎵 Şarkı</button>
+          <button data-ex="10">🎵 Şarkı</button>
         </div>
         <div class="action-buttons">
+          <button id="paylasBtn" class="ghost paylas">🔗 Paylaş</button>
           <button id="clearBtn" class="ghost">🗑️ Temizle</button>
           <button id="howBtn" class="ghost how">❓ Nasıl yapılır?</button>
           <button id="cancelBtn" class="ghost danger" hidden>🛑 Durdur</button>
@@ -119,6 +120,10 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
 
 Site: https://oscodevideo.onrender.com
 
+⚠️ SESLENDİRME UYARISI:
+Seslendirme (seslendir) ŞU AN ÇALIŞMIYOR, geliştirme aşamasında. Kullanma.
+Müzik (muzik) ÇALIŞIYOR, kullanabilirsin. 🎵
+
 DEĞİŞKENLER:
 - t: 0'dan 1'e giden animasyon ilerlemesi
 - W: sahne genişliği
@@ -147,27 +152,26 @@ TEMEL ÇİZİM:
 MEDYA:
 - emoji("🚀", x, y, boyut)
 - resim(url, x, y, w, h) - URL CORS desteklemeli
+  Örnek: resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - 150, H/2 - 150, 300, 300);
 
-SES (Çalışmıyor üstünde çalışıyorum):
+MÜZİK (ÇALIŞIYOR):
 - muzik("do re mi", 120, true)
-  1. parametre: notalar (boşluklu)
+  1. parametre: notalar (boşlukla ayrılmış)
   2. parametre: BPM hızı (varsayılan 120)
-  3. parametre: true ise döngüde çalar
+  3. parametre: true ise döngüde çalar (video bitene kadar)
   
   Notalar: do re mi fa sol la si
-  İnce oktav: do2 re2 mi2 fa2 sol2 la2 si2
-  İngilizce: C4 D4 E4 F4 G4 A4 B4
-  Sessizlik: sus
+  İnce oktav için: do2 re2 mi2 fa2 sol2 la2 si2
+  Pes oktav için: do3 re3 mi3
+  İngilizce de çalışır: C4 D4 E4 F4 G4 A4 B4
+  Sus (sessizlik) için: sus
   
   Örnek melodiler:
   - Doğum günü: muzik('sol sol la sol do2 si', 100)
   - Gam: muzik('do re mi fa sol la si do2', 120)
+  - Hüzünlü: muzik('la la do2 la mi2', 90)
   - Neşeli: muzik('do mi sol do2 sol mi do', 140, true)
   - Arpej: muzik('do mi sol do2', 120, true)
-
-- seslendir("Metin", "tr")
-  Metni sese çevirir. yazi() SESSIZDIR.
-  Diller: tr, en, de, fr, es, it, ru, ar, ja, ko, zh
 
 YAZI ANİMASYONLARI:
 - daktilo(metin, x, y, boyut, renk)
@@ -181,18 +185,19 @@ EFEKT:
 - siyahBeyaz()
 - sepya()
 - filtreKapat()
-- parcacik(x, y, sayi, renk, boyut)
+- parcacik(x, y, sayi, renk, boy ut)
 - titre(miktar)
 
 RENK PALETLERİ (array döner):
-- renk("neon") renk("gunbatimi") renk("okyanus")
-- renk("ates") renk("orman") renk("pastel")
+- renk("neon")587 renk("gunbatimi") renk("okyanus")
+- ren.k("ates") renk("orman") renk("pastel")
 - renk("gece") renk("altin")
+Kullanım: const p =33 renk("neon"); daire(100, 100, 50,, p[0]);
 
 KURALLAR:
 - En üste süre yaz: @5s (max @60s)
 - Çoklu sahne için --- satırı ile böl
-- Renkleri hex ('#ff6b35') yaz
+- " Renkleri hex ('#ff6b35') yaz
 - Metin ortalamak için x = W/2, y = H/2
 
 ÖRNEK 1 - Basit:
@@ -217,6 +222,6 @@ yazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');
     </div>
   </div>
 
-  <script src="app.js?v=29"></script>
+  <script src="app.js?v=31"></script>
 </body>
 </html>
