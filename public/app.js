@@ -52,7 +52,6 @@
 
   var ctx = canvas ? canvas.getContext("2d") : null;
 
-  // ==================== TEMA ====================
   function temaUygula(t) {
     document.documentElement.setAttribute("data-theme", t);
     if (themeBtn) themeBtn.textContent = t === "light" ? "☀️" : "🌙";
@@ -71,7 +70,6 @@
     });
   }
 
-  // ==================== TOAST ====================
   var toastTimer = null;
   function toastGoster(mesaj, undoFn) {
     if (!toast) return;
@@ -91,7 +89,6 @@
     if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
   }
 
-  // ==================== MODAL ====================
   function openModal() {
     if (!howModal) return;
     howModal.classList.add("show");
@@ -147,7 +144,6 @@
     });
   }
 
-  // ==================== BOYUT ====================
   function boyutUygula() {
     var b = BOYUTLAR[aktifBoyut];
     W = b.w; H = b.h;
@@ -168,7 +164,6 @@
     })(boyutBtns[bi]);
   }
 
-  // ==================== SOHBET ====================
   function clearVideoChat() {
     if (!chatLog) return;
     var msgs = chatLog.querySelectorAll(".bot-msg");
@@ -192,7 +187,6 @@
     if (type) b.className = "bubble " + type;
   }
 
-  // ==================== ÖRNEKLER ====================
   var ORNEKLER = [
     "@5s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nconst x = 100 + t * (W - 200);\nda1re(x, H/2, 50, '#ff6b35');",
     "@4s\ngradient('#ff6b35', '#6c8cff', 'capraz');\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.15;\nkalp(W/2, H/2 - 50, 200 * s, '#fff');",
@@ -226,7 +220,6 @@
     })(exBtns[ei]);
   }
 
-  // ==================== KAYDET ====================
   function kodKaydet() {
     try { localStorage.setItem(LS_KEY, codeInput.value); } catch (e) {}
   }
@@ -262,7 +255,6 @@
     });
   }
 
-  // ==================== PARSE ====================
   function parseCode(raw) {
     var duration = 5;
     var m = raw.match(/@(\d+(?:[.,]\d+)?)s?\b/);
@@ -294,12 +286,10 @@
     else sureBilgi.style.color = "";
   }
 
-  // ==================== SES / MÜZİK ====================
   var sesCtx = null;
   var sesDest = null;
   var sesBuffers = {};
   var sesSources = [];
-  var sesHazirMi = false;
 
   var NOTA = {
     "do": 261.63, "re": 293.66, "mi": 329.63, "fa": 349.23,
@@ -321,7 +311,7 @@
       if (sesCtx.state === "suspended") {
         try { sesCtx.resume(); } catch (e) {}
       }
-      return sesCtx.state === "running";
+      return true;
     }
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
@@ -331,7 +321,6 @@
       if (sesCtx.state === "suspended") {
         try { sesCtx.resume(); } catch (e) {}
       }
-      // Sessiz kaynak: MediaRecorder ses kanalını canlı tutar
       try {
         var buf = sesCtx.createBuffer(1, sesCtx.sampleRate, sesCtx.sampleRate);
         var src = sesCtx.createBufferSource();
@@ -347,7 +336,6 @@
     }
   }
 
-  // TTS indir
   function sesIndir(text, lang) {
     if (!sesCtx) return Promise.resolve(null);
     var key = text + "|" + lang;
@@ -368,10 +356,7 @@
         sesBuffers[key] = audioBuf;
         return audioBuf;
       })
-      .catch(function (e) {
-        console.warn("TTS indirilemedi:", text, e);
-        return null;
-      });
+      .catch(function (e) { return null; });
   }
 
   function sesCal(text, lang) {
@@ -392,7 +377,6 @@
     } catch (e) {}
   }
 
-  // Müzik çal (nota dizisi)
   function muzikCal(notalarStr, bpm, dongu) {
     if (!sesCtx || !sesDest) return;
     bpm = bpm || 120;
@@ -403,74 +387,42 @@
     var baslangic = sesCtx.currentTime + 0.05;
     var toplamSure = notalar.length * notaSure;
 
-    function diziCal(baslangicTime) {
-      for (var i = 0; i < notalar.length; i++) {
-        (function (nota, index) {
-          var freq = NOTA[nota.toLowerCase()] || NOTA[nota] || 0;
-          if (freq === 0) return;
-          var t0 = baslangicTime + index * notaSure;
-          var t1 = t0 + notaSure * 0.9;
+    function tekNota(nota, t0) {
+      var freq = NOTA[nota.toLowerCase()] || NOTA[nota] || 0;
+      if (freq === 0) return;
+      var t1 = t0 + notaSure * 0.9;
+      var osc = sesCtx.createOscillator();
+      var gain = sesCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.15, t0 + 0.02);
+      gain.gain.setValueAtTime(0.15, t1 - 0.05);
+      gain.gain.linearRampToValueAtTime(0, t1);
+      osc.connect(gain);
+      gain.connect(sesDest);
+      gain.connect(sesCtx.destination);
+      osc.start(t0);
+      osc.stop(t1);
+      sesSources.push(osc);
+      osc.onended = function () {
+        var j = sesSources.indexOf(osc);
+        if (j >= 0) sesSources.splice(j, 1);
+      };
+    }
 
-          var osc = sesCtx.createOscillator();
-          var gain = sesCtx.createGain();
-          osc.type = "sine";
-          osc.frequency.value = freq;
+    for (var i = 0; i < notalar.length; i++) {
+      tekNota(notalar[i], baslangic + i * notaSure);
+    }
 
-          // Yumuşak giriş-çıkış
-          gain.gain.setValueAtTime(0, t0);
-          gain.gain.linearRampToValueAtTime(0.15, t0 + 0.02);
-          gain.gain.setValueAtTime(0.15, t1 - 0.05);
-          gain.gain.linearRampToValueAtTime(0, t1);
-
-          osc.connect(gain);
-          gain.connect(sesDest);
-          gain.connect(sesCtx.destination);
-
-          osc.start(t0);
-          osc.stop(t1);
-          sesSources.push(osc);
-          osc.onended = function () {
-            var j = sesSources.indexOf(osc);
-            if (j >= 0) sesSources.splice(j, 1);
-          };
-        })(notalar[i], i);
-      }
-
-      if (dongu) {
-        // Loop: video bitene kadar çalmaya devam et
-        // Basit yaklaşım: 10 kere çal (yeterince uzun)
-        for (var k = 1; k < 10; k++) {
-          var ekBaslangic = baslangicTime + k * toplamSure;
-          for (var m = 0; m < notalar.length; m++) {
-            (function (nota, index) {
-              var freq = NOTA[nota.toLowerCase()] || NOTA[nota] || 0;
-              if (freq === 0) return;
-              var t0 = ekBaslangic + index * notaSure;
-              var t1 = t0 + notaSure * 0.9;
-              var osc = sesCtx.createOscillator();
-              var gain = sesCtx.createGain();
-              osc.type = "sine";
-              osc.frequency.value = freq;
-              gain.gain.setValueAtTime(0, t0);
-              gain.gain.linearRampToValueAtTime(0.15, t0 + 0.02);
-              gain.gain.setValueAtTime(0.15, t1 - 0.05);
-              gain.gain.linearRampToValueAtTime(0, t1);
-              osc.connect(gain);
-              gain.connect(sesDest);
-              gain.connect(sesCtx.destination);
-              osc.start(t0);
-              osc.stop(t1);
-              sesSources.push(osc);
-              osc.onended = function () {
-                var j = sesSources.indexOf(osc);
-                if (j >= 0) sesSources.splice(j, 1);
-              };
-            })(notalar[m], m);
-          }
+    if (dongu) {
+      for (var k = 1; k < 12; k++) {
+        var ek = baslangic + k * toplamSure;
+        for (var m = 0; m < notalar.length; m++) {
+          tekNota(notalar[m], ek + m * notaSure);
         }
       }
     }
-    diziCal(baslangic);
   }
 
   function sesDurdur() {
@@ -497,7 +449,6 @@
     return Promise.all(promises);
   }
 
-  // ==================== HELPERS ====================
   var imgCache = {};
   var state = { t: 0, seslendirilenler: {}, muzikCalindi: {} };
 
@@ -831,13 +782,13 @@
   }
 
   function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator;.userAgent) ||
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   }
   function pickMime() {
-    var iOS =code isIOS();
+    var iOS = isIOS();
     var list = iOS
-      ? ["video/mp4", "video/mp4;codecs=avc1", "video/mp4cs=h264",
+      ? ["video/mp4", "video/mp4;codecs=avc1", "video/mp4;codecs=h264",
          "video/webm;codecs=vp8", "video/webm"]
       : ["video/webm;codecs=vp8", "video/webm;codecs=vp9",
          "video/webm", "video/mp4"];
@@ -906,12 +857,11 @@
     var muzikVar = /muzik\s*\(/.test(raw);
     var sesGerekli = sesVar || muzikVar;
 
-    // SADECE ses gerekiyorsa AudioContext'i baslat
     var sesAktif = false;
     if (sesGerekli) {
       sesAktif = sesKur();
       if (!sesAktif) {
-        addBotMessage("Not: Ses/muzik baslatilamadi, video sessiz kaydedilecek.");
+        addBotMessage("Not: Ses baslatilamadi, video sessiz olacak.");
       }
     }
 
@@ -944,7 +894,6 @@
 
     await sleep(200);
 
-    // Stream: video her zaman, ses SADECE gerekliyse
     var stream, rec;
     try {
       var canvasStream = canvas.captureStream(FPS);
@@ -956,8 +905,7 @@
       }
 
       stream = new MediaStream(tracks);
-      var recOpts = { mimeType: mime };
-      rec = new MediaRecorder(stream, recOpts);
+      rec = new MediaRecorder(stream, { mimeType: mime });
     } catch (e) {
       updateMessage(m3, "MediaRecorder hatasi: " + escapeHtml(e.message), "err");
       uretimBitti(); progressBar.hidden = true; return;
@@ -990,10 +938,7 @@
       };
     });
 
-    // NOT: timeslice olmadan başlat — bazı tarayıcılar için daha stabil
-    rec.start();
-
-    // Recorder'ın ısınması için kısa bekleme
+    rec.start(100);
     await sleep(400);
 
     var startTime = performance.now();
@@ -1043,7 +988,6 @@
       if (elapsed < toplamMs) {
         requestAnimationFrame(tick);
       } else if (!stopped) {
-        // Bitişten sonra biraz bekle, sonra durdur
         setTimeout(function () {
           try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
         }, 1500);
@@ -1101,5 +1045,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("OsCodeVideo hazir v26");
+  console.log("OsCodeVideo hazir v28");
 })();
