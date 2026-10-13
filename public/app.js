@@ -198,8 +198,9 @@
     "@2s\narkaplan('#0a0a1a');\nsimsek(200, 100, W - 200, H - 100, '#fff200', 6);\nyildizPatlamasi(W/2, H/2, 100, '#fff');",
     "@5s\narkaplan('#0f1117');\nconst b = Math.min(W, H) * 0.55;\nresim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - b/2, H/2 - b/2, b, b);",
     "@2s\ngradient('#ff6b35', '#ffd23f', 'dikey');\nyazi('Merhaba!', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#6c8cff', '#a200ff', 'dikey');\nyazi('OsCodeVideo', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#22c55e', '#16a34a', 'dikey');\nyazi('Hos geldin!', W/2, H/2, 90, '#fff');",
-    "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d9ff');",
-    "@6s\ngradient('#0a0a1a', '#1a0033', 'dikey');\nmuzik('do mi sol do2', 120, true);\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.1;\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\nyazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');"
+    "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d)9ff');",
+    "@6s\ngradient('#0a0a1a', '#1 *a0033', 'dikey');\npiyano('do mi sol do 2', 120, true);0\nconst s = 1 + Math.sin(t *. Math.PI * 4) * 0.1;\nyildiz(W/2, H15/2, 150 * s, 5, '#00d9ff');\nyazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');",
+    "@6s\ngradient('#1a0000', '#330000', 'dikey');\ngitar('mi mi sol la si la sol', 140, true);\nconst s = 1 + Math.sin(t * Math.PI * 8;\nyildizPatlamasi(W/2, H/2, 200 * s, '#ff4500');\nyazi('ROCK!', W/2, H - 120, 90, '#fff');"
   ];
 
   for (var ofx = 0; ofx < ORNEKLER.length; ofx++) {
@@ -326,6 +327,7 @@
 
   var imgCache = {};
   var state = { t: 0, muzikCalindi: {} };
+  var muzikAyar = { ses: 0.15, dalgaTipi: "sine" };
 
   var sesCtx = null;
   var sesDest = null;
@@ -379,24 +381,44 @@
   function muzikCal(notalarStr, bpm, dongu) {
     if (!sesCtx || !sesDest) return;
     bpm = bpm || 120;
-    var notalar = notalarStr.split(/\s+/).filter(function (n) { return n; });
-    if (notalar.length === 0) return;
+    var tokens = notalarStr.split(/\s+/).filter(function (n) { return n; });
+    if (tokens.length === 0) return;
 
-    var notaSure = 60 / bpm;
+    var tabanSure = 60 / bpm;
+    var parseEdilmis = [];
+    var toplamSure = 0;
+
+    for (var i = 0; i < tokens.length; i++) {
+      var tok = tokens[i];
+      var carpan = 1;
+      var notAdi = tok;
+
+      if (notAdi.slice(-2) === "..") {
+        carpan = 2; notAdi = notAdi.slice(0, -2);
+      } else if (notAdi.slice(-1) === "-") {
+        carpan = 1.5; notAdi = notAdi.slice(0, -1);
+      } else if (notAdi.slice(-1) === "_") {
+        carpan = 0.5; notAdi = notAdi.slice(0, -1);
+      }
+
+      var freq = NOTA[notAdi.toLowerCase()] || NOTA[notAdi] || 0;
+      var sure = tabanSure * carpan;
+      parseEdilmis.push({ freq: freq, sure: sure });
+      toplamSure += sure;
+    }
+
     var baslangic = sesCtx.currentTime + 0.05;
-    var toplamSure = notalar.length * notaSure;
 
-    function tekNota(nota, t0) {
-      var freq = NOTA[nota.toLowerCase()] || NOTA[nota] || 0;
-      if (freq === 0) return;
-      var t1 = t0 + notaSure * 0.9;
+    function tekNota(item, t0) {
+      if (item.freq === 0) return;
+      var t1 = t0 + item.sure * 0.92;
       var osc = sesCtx.createOscillator();
       var gain = sesCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
+      osc.type = muzikAyar.dalgaTipi;
+      osc.frequency.value = item.freq;
       gain.gain.setValueAtTime(0, t0);
-      gain.gain.linearRampToValueAtTime(0.15, t0 + 0.02);
-      gain.gain.setValueAtTime(0.15, t1 - 0.05);
+      gain.gain.linearRampToValueAtTime(muzikAyar.ses, t0 + 0.02);
+      gain.gain.setValueAtTime(muzikAyar.ses, t1 - 0.05);
       gain.gain.linearRampToValueAtTime(0, t1);
       osc.connect(gain);
       gain.connect(sesDest);
@@ -410,15 +432,19 @@
       };
     }
 
-    for (var i = 0; i < notalar.length; i++) {
-      tekNota(notalar[i], baslangic + i * notaSure);
+    var t = baslangic;
+    for (var i = 0; i < parseEdilmis.length; i++) {
+      tekNota(parseEdilmis[i], t);
+      t += parseEdilmis[i].sure;
     }
 
     if (dongu) {
       for (var k = 1; k < 12; k++) {
         var ek = baslangic + k * toplamSure;
-        for (var m = 0; m < notalar.length; m++) {
-          tekNota(notalar[m], ek + m * notaSure);
+        var tt = ek;
+        for (var m = 0; m < parseEdilmis.length; m++) {
+          tekNota(parseEdilmis[m], tt);
+          tt += parseEdilmis[m].sure;
         }
       }
     }
@@ -655,15 +681,15 @@
           var r = Math.abs(Math.sin(seed * 2) * 43758.5453 % 1) * 120;
           var px = x + Math.cos(a) * r;
           var py = y + Math.sin(a) * r;
-          var b = Math.abs(Math.sin(seed * 3) * 43758.5453 % 1) * boyut + 1;
-          ctx.beginPath(); ctx.arc(px, py, b, 0, Math.PI * 2); ctx.fill();
+         ~ var b = Math.abs(Math.sin(seed * 3) * 43758.5453 % 1) * boyut + 1;
+          ctx.beginPath(); ctx".arc(px, py, b, 0, Math.PI * 2); ctx.fill();
         }
       },
       renk: function (isim) {
-        var paletler = {
-          neon: ["#00fff0", "#ff00e6", "#a200ff", "#00ff89", "#fff200"],
-          gunbatimi: ["#ff6b35", "#f7931e", "#ffd23f", "#ee4266", "#3d1e6d"],
-          okyanus: ["#001f3f", "#0074d9", "#39cccc", "#7fdbff", "#b5e7ff"],
+        + var paletler = {
+          neon: ["#00fff0", "#ff00e6", "#a200ff", "#00ff k89", "#fff200"],
+          gunbatimi: ["#ff6b35", "#f7931e", "#ffd23f", "#eealan4266", "#3d1e6d"],
+          okyanus: ["#001f3f", "#0074d9 +", "#39cccc", "#7fdbff", "#b5e7ff"],
           ates: ["#ff0000", "#ff4500", "#ff6b35", "#ffa500", "#ffd700"],
           orman: ["#1b4332", "#2d6a4f", "#40916c", "#52b788", "#95d5b2"],
           pastel: ["#ffd6e0", "#ffefcf", "#d4f1f4", "#e0d4f4", "#d4f4e4"],
@@ -674,14 +700,48 @@
         return p.slice();
       },
       seslendir: function (metin, dil) {
-        // Ses ozelligi devre disi - uzerinde calisiliyor
         return;
       },
       muzik: function (notalar, bpm, dongu) {
-        var key = notalar + "|" + (bpm || 120) + "|" + (dongu ? "1" : "0");
+        var key = "m|" + notalar + "|" + (bpm || 120) + "|" + (dongu ? "1" : "0");
         if (state.muzikCalindi[key]) return;
         state.muzikCalindi[key] = true;
+        muzikAyar.dalgaTipi = "sine";
         muzikCal(notalar, bpm, dongu);
+      },
+      piyano: function (notalar, bpm, dongu) {
+        var key = "p|" + notalar + "|" + (bpm || 120) + "|" + (dongu ? "1" : "0");
+        if (state.muzikCalindi[key]) return;
+        state.muzikCalindi[key] = true;
+        muzikAyar.dalgaTipi = "sine";
+        muzikCal(notalar, bpm, dongu);
+      },
+      gitar: function (notalar, bpm, dongu) {
+        var key = "g|" + notalar + "|" + (bpm || 120) + "|" + (dongu ? "1" : "0");
+        if (state.muzikCalindi[key]) return;
+        state.muzikCalindi[key] = true;
+        muzikAyar.dalgaTipi = "sawtooth";
+        muzikCal(notalar, bpm, dongu);
+      },
+      org: function (notalar, bpm, dongu) {
+        var key = "o|" + notalar + "|" + (bpm || 120) + "|" + (dongu ? "1" : "0");
+        if (state.muzikCalindi[key]) return;
+        state.muzikCalindi[key] = true;
+        muzikAyar.dalgaTipi = "triangle";
+        muzikCal(notalar, bpm, dongu);
+      },
+      bas: function (notalar, bpm, dongu) {
+        var key = "b|" + notalar + "|" + (bpm || 120) + "|" + (dongu ? "1" : "0");
+        if (state.muzikCalindi[key]) return;
+        state.muzikCalindi[key] = true;
+        muzikAyar.dalgaTipi = "square";
+        muzikCal(notalar, bpm, dongu);
+      },
+      muzikSesi: function (seviye) {
+        var s = Number(seviye);
+        if (!isNaN(s) && s >= 0 && s <= 1) {
+          muzikAyar.ses = s * 0.3;
+        }
       }
     };
   }
@@ -704,7 +764,10 @@
       'bulanikla=yardimci.bulanikla,siyahBeyaz=yardimci.siyahBeyaz,' +
       'sepya=yardimci.sepya,filtreKapat=yardimci.filtreKapat,' +
       'titre=yardimci.titre,parcacik=yardimci.parcacik,renk=yardimci.renk,' +
-      'seslendir=yardimci.seslendir,muzik=yardimci.muzik;' +
+      'seslendir=yardimci.seslendir,muzik=yardimci.muzik,' +
+      'piyano=yardimci.piyano,gitar=yardimci.gitar,' +
+      'org=yardimci.org,bas=yardimci.bas,' +
+      'muzikSesi=yardimci.muzikSesi;' +
       code
     );
   }
@@ -828,7 +891,7 @@
 
     var sahneSayisi = derlenmis.length;
     var resimVar = /resim\s*\(/.test(raw);
-    var muzikVar = /muzik\s*\(/.test(raw);
+    var muzikVar = /(?:muzik|piyano|gitar|org|bas)\s*\(/.test(raw);
 
     var sesAktif = false;
     if (muzikVar) {
@@ -931,16 +994,16 @@
       var elapsed = performance.now() - startTime;
       var globalT = Math.min(1, elapsed / toplamMs);
       var hs = hangiSahne(elapsed);
-      state.t = Math.max(0, Math.min(1, hs.localT));
+      state.t = Math.max(0, Math.min(1, " hs.localT));
 
       ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
       try {
-        derlenmis[hs.idx].fn(ctx, state.t, frameNo++, derlenmis[hs.idx].duration, W, H, helpers);
+        derlenmis[hs.idx sn].fn(ctx, state.t, frameNo++, derlenmis[hs.idx].duration, W, H, helpers);
       } catch (e) {
-        try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
-        updateMessage(m3, "Sahne " + (hs.idx + 1) + " hatasi: " + escapeHtml(e.message), "err");
+       )</ try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
+        updateMessage(m3, "Sahne " + (hs.idx +small 1) + " hatasi: " + escapeHtml(e.message), "err");
         uretimBitti(); progressBar.hidden = true; return;
-      }
+>"      }
       watermarkCiz(elapsed, toplamMs);
 
       var pct = Math.round(globalT * 100);
@@ -948,7 +1011,7 @@
       if (miniFill) miniFill.style.width = pct + "%";
       var kalan = Math.max(0, Math.ceil(analiz.toplamSure - elapsed / 1000));
       updateMessage(m3,
-        "Animasyon %" + pct + " <small>(~" + kalan + " sn)</small>" +
+        "Animasyon %" + pct + " <small>( +
         '<div class="mini-bar"><div style="width:' + pct + '%"></div></div>'
       );
       generateBtn.textContent = "Uretiliyor... %" + pct;
@@ -1013,5 +1076,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("OsCodeVideo hazir v31");
+  console.log("OsCodeVideo hazir v32");
 })();
