@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo</title>
-  <link rel="stylesheet" href="style.css?v=32" />
+  <link rel="stylesheet" href="style.css?v=33" />
 </head>
 <body>
   <header>
@@ -59,7 +59,8 @@
             <code>titre</code><br />
             <b>Palet:</b> <code>renk("neon")</code><br />
             <b>Çoklu sahne:</b> <code>---</code> ile böl<br />
-            <b style="color:#ef4444">⚠️ Seslendirme (seslendir) şu an çalışmıyor — üstünde çalışıyorum. Müzik çalışıyor. 🎵</b>
+            <b style="color:#f59e0b">🎵 Müzik sadece Chrome / Edge / Firefox'ta çalışır.</b><br />
+            <b style="color:#ef4444">⚠️ Seslendirme (seslendir) henüz çalışmıyor.</b>
           </small>
         </div>
       </div>
@@ -122,9 +123,11 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
 
 Site: https://oscodevideo.onrender.com
 
-⚠️ SESLENDİRME UYARISI:
-Seslendirme (seslendir) ŞU AN ÇALIŞMIYOR, geliştirme aşamasında. Kullanma.
-Müzik (muzik, piyano, gitar, org, bas) ÇALIŞIYOR. 🎵
+⚠️ ÖNEMLİ UYARILAR:
+1) Müzik (muzik, piyano, gitar, org, bas) SADECE Chrome / Edge / 
+   Firefox / HereEmu gibi tarayıcılarda videoya gömülür. Safari (iPhone/iPad/Mac) 
+   üzerinde müzik videoya kaydedilmez, sessiz çıkar.
+2) Seslendirme (seslendir) ŞU AN ÇALIŞMIYOR. Kullanma.
 
 DEĞİŞKENLER:
 - t: 0'dan 1'e giden animasyon ilerlemesi
@@ -155,7 +158,7 @@ MEDYA:
 - emoji("🚀", x, y, boyut)
 - resim(url, x, y, w, h) - URL CORS desteklemeli
 
-MÜZİK (ÇALIŞIYOR):
+MÜZİK (Chrome/Edge/Firefox/HereEmu):
 - muzik("do re mi", 120, true)    - normal (piyano)
 - piyano("do re mi", 120, true)   - yumuşak ses
 - gitar("do re mi", 120, true)    - keskin, tel sesi
@@ -174,16 +177,16 @@ MÜZİK (ÇALIŞIYOR):
   Sessizlik: sus
 
   NOTA UZATMA / KISALTMA:
-  - do       → normal süre
-  - do-      → 1.5x uzun
-  - do..     → 2x uzun
-  - do_      → yarı süre (kısa)
+  - do       -> normal süre
+  - do-      -> 1.5x uzun
+  - do..     -> 2x uzun
+  - do_      -> yarı süre (kısa)
 
-  Örnek: muzik('do- re mi_ fa..') → ilk nota uzun, mi kısa, fa çok uzun
+  Örnek: muzik('do- re mi_ fa..') -> ilk nota uzun, mi kısa, fa çok uzun
 
   SES SEVİYESİ:
-  - muzikSesi(0.5)   → yarı ses (0.0 - 1.0 arası)
-  - muzikSesi(1)     → tam ses
+  - muzikSesi(0.5)   -> yarı ses (0.0 - 1.0 arası)
+  - muzikSesi(1)     -> tam ses
   - Kodun en başında bir kez çağır
 
   Örnek melodiler:
@@ -251,6 +254,6 @@ yazi('ROCK!', W/2, H - 120, 90, '#fff');
     </div>
   </div>
 
-  <script src="app.js?v=32"></script>
+  <script src="app.js?v=33"></script>
 </body>
 </html>
