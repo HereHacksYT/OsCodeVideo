@@ -50,6 +50,10 @@
   var modalClose   = $("modalClose");
   var copyBtn      = $("copyBtn");
   var promptText   = $("promptText");
+  var aiOverlay    = $("aiOverlay");
+  var aiOpenBtn    = $("aiOpenBtn");
+  var aiCloseBtn   = $("aiCloseBtn");
+  var aiFrame      = $("aiFrame");
 
   var ctx = canvas ? canvas.getContext("2d") : null;
 
@@ -142,6 +146,26 @@
         copyBtn.textContent = "❌ Hata";
         setTimeout(function () { copyBtn.textContent = "📋 Kopyala"; }, 2000);
       }
+    });
+  }
+
+  // ==================== AI ASISTAN IFRAME ====================
+  var AI_URL = "https://oshere-ai-app.onrender.com";
+
+  if (aiOpenBtn && aiOverlay && aiFrame) {
+    aiOpenBtn.addEventListener("click", function () {
+      if (!aiFrame.src || aiFrame.src === "about:blank" || aiFrame.src.indexOf("about:blank") === 0) {
+        aiFrame.src = AI_URL;
+      }
+      aiOverlay.classList.add("show");
+      document.body.style.overflow = "hidden";
+    });
+  }
+
+  if (aiCloseBtn && aiOverlay) {
+    aiCloseBtn.addEventListener("click", function () {
+      aiOverlay.classList.remove("show");
+      document.body.style.overflow = "";
     });
   }
 
@@ -862,7 +886,9 @@
           duration: analiz.sahneler[i].duration
         });
       } catch (e) {
-        addBotMessage("Sahne " + (i + 1) + " hatasi: " + escapeHtml(e.message), "err");
+        addBotMessage("Sahne " + (i + 1) + " hatasi: " + escapeHtml(e.message) +
+          "<br><small>Sayfa 5 saniye icinde yenilenecek...</small>", "err");
+        setTimeout(function () { location.reload(); }, 5000);
         return;
       }
     }
@@ -919,7 +945,9 @@
     try {
       derlenmis[0].fn(ctx, 0, 0, derlenmis[0].duration, W, H, makeHelpers());
     } catch (e) {
-      updateMessage(m3, "Calisma hatasi: " + escapeHtml(e.message), "err");
+      updateMessage(m3, "Calisma hatasi: " + escapeHtml(e.message) +
+        "<br><small>Sayfa 5 saniye icinde yenilenecek...</small>", "err");
+      setTimeout(function () { location.reload(); }, 5000);
       uretimBitti(); progressBar.hidden = true; return;
     }
 
@@ -958,7 +986,8 @@
         stopped = true;
         if (iptalEdildi) { reject(new Error("__IPTAL__")); return; }
         if (!chunks.length) {
-          reject(new Error("Kayit bos. Tekrar dene."));
+          reject(new Error("Kayit bos. Sayfa yenileniyor..."));
+          setTimeout(function () { location.reload(); }, 3000);
           return;
         }
         resolve(new Blob(chunks, { type: mime }));
@@ -1001,7 +1030,9 @@
         derlenmis[hs.idx].fn(ctx, state.t, frameNo++, derlenmis[hs.idx].duration, W, H, helpers);
       } catch (e) {
         try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
-        updateMessage(m3, "Sahne " + (hs.idx + 1) + " hatasi: " + escapeHtml(e.message), "err");
+        updateMessage(m3, "Sahne " + (hs.idx + 1) + " hatasi: " + escapeHtml(e.message) +
+          "<br><small>Sayfa 5 saniye icinde yenilenecek...</small>", "err");
+        setTimeout(function () { location.reload(); }, 5000);
         uretimBitti(); progressBar.hidden = true; return;
       }
       watermarkCiz(elapsed, toplamMs);
@@ -1076,5 +1107,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("OsCodeVideo hazir v33");
+  console.log("OsCodeVideo hazir v34");
 })();
