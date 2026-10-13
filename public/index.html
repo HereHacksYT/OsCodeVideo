@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo</title>
-  <link rel="stylesheet" href="style.css?v=31" />
+  <link rel="stylesheet" href="style.css?v=32" />
 </head>
 <body>
   <header>
@@ -52,7 +52,8 @@
             <code>ok</code> <code>cokgen</code> <code>yildizPatlamasi</code>
             <code>konfeti</code> <code>simsek</code> <code>bulut</code> <code>gunes</code><br />
             <b>Medya:</b> <code>emoji</code> <code>resim</code><br />
-            <b>Ses:</b> <code>muzik</code> 🎵<br />
+            <b>Müzik:</b> <code>muzik</code> <code>piyano</code> <code>gitar</code>
+            <code>org</code> <code>bas</code> <code>muzikSesi</code> 🎵<br />
             <b>Yazı:</b> <code>daktilo</code> <code>kaydir</code> <code>yukariCik</code><br />
             <b>Efekt:</b> <code>golge</code> <code>bulanikla</code> <code>parcacik</code>
             <code>titre</code><br />
@@ -84,6 +85,7 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
           <button data-ex="8">Çoklu Sahne</button>
           <button data-ex="9">Daktilo</button>
           <button data-ex="10">🎵 Şarkı</button>
+          <button data-ex="11">🎸 Gitar</button>
         </div>
         <div class="action-buttons">
           <button id="paylasBtn" class="ghost paylas">🔗 Paylaş</button>
@@ -122,7 +124,7 @@ Site: https://oscodevideo.onrender.com
 
 ⚠️ SESLENDİRME UYARISI:
 Seslendirme (seslendir) ŞU AN ÇALIŞMIYOR, geliştirme aşamasında. Kullanma.
-Müzik (muzik) ÇALIŞIYOR, kullanabilirsin. 🎵
+Müzik (muzik, piyano, gitar, org, bas) ÇALIŞIYOR. 🎵
 
 DEĞİŞKENLER:
 - t: 0'dan 1'e giden animasyon ilerlemesi
@@ -152,26 +154,45 @@ TEMEL ÇİZİM:
 MEDYA:
 - emoji("🚀", x, y, boyut)
 - resim(url, x, y, w, h) - URL CORS desteklemeli
-  Örnek: resim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - 150, H/2 - 150, 300, 300);
 
 MÜZİK (ÇALIŞIYOR):
-- muzik("do re mi", 120, true)
-  1. parametre: notalar (boşlukla ayrılmış)
-  2. parametre: BPM hızı (varsayılan 120)
-  3. parametre: true ise döngüde çalar (video bitene kadar)
-  
+- muzik("do re mi", 120, true)    - normal (piyano)
+- piyano("do re mi", 120, true)   - yumuşak ses
+- gitar("do re mi", 120, true)    - keskin, tel sesi
+- org("do re mi", 120, true)      - kilise orgu
+- bas("do re mi", 120, true)      - kalın, boom ses
+
+  Parametreler:
+  1. notalar (boşlukla ayrılmış)
+  2. BPM hızı (varsayılan 120)
+  3. true ise döngüde çalar (video bitene kadar)
+
   Notalar: do re mi fa sol la si
-  İnce oktav için: do2 re2 mi2 fa2 sol2 la2 si2
-  Pes oktav için: do3 re3 mi3
-  İngilizce de çalışır: C4 D4 E4 F4 G4 A4 B4
-  Sus (sessizlik) için: sus
-  
+  İnce oktav: do2 re2 mi2 fa2 sol2 la2 si2
+  Pes oktav: do3 re3 mi3
+  İngilizce: C4 D4 E4 F4 G4 A4 B4
+  Sessizlik: sus
+
+  NOTA UZATMA / KISALTMA:
+  - do       → normal süre
+  - do-      → 1.5x uzun
+  - do..     → 2x uzun
+  - do_      → yarı süre (kısa)
+
+  Örnek: muzik('do- re mi_ fa..') → ilk nota uzun, mi kısa, fa çok uzun
+
+  SES SEVİYESİ:
+  - muzikSesi(0.5)   → yarı ses (0.0 - 1.0 arası)
+  - muzikSesi(1)     → tam ses
+  - Kodun en başında bir kez çağır
+
   Örnek melodiler:
-  - Doğum günü: muzik('sol sol la sol do2 si', 100)
+  - Doğum günü: piyano('sol sol la sol do2 si', 100)
   - Gam: muzik('do re mi fa sol la si do2', 120)
-  - Hüzünlü: muzik('la la do2 la mi2', 90)
-  - Neşeli: muzik('do mi sol do2 sol mi do', 140, true)
-  - Arpej: muzik('do mi sol do2', 120, true)
+  - Rock: gitar('mi mi sol la si la sol', 140, true)
+  - Kilise: org('do- mi- sol- do2-', 80)
+  - Bass: bas('do_ do_ do_ do_', 100)
+  - Yumuşak: muzikSesi(0.3); piyano('do mi sol', 90, true)
 
 YAZI ANİMASYONLARI:
 - daktilo(metin, x, y, boyut, renk)
@@ -185,19 +206,19 @@ EFEKT:
 - siyahBeyaz()
 - sepya()
 - filtreKapat()
-- parcacik(x, y, sayi, renk, boy ut)
+- parcacik(x, y, sayi, renk, boyut)
 - titre(miktar)
 
 RENK PALETLERİ (array döner):
-- renk("neon")587 renk("gunbatimi") renk("okyanus")
-- ren.k("ates") renk("orman") renk("pastel")
+- renk("neon") renk("gunbatimi") renk("okyanus")
+- renk("ates") renk("orman") renk("pastel")
 - renk("gece") renk("altin")
-Kullanım: const p =33 renk("neon"); daire(100, 100, 50,, p[0]);
+Kullanım: const p = renk("neon"); daire(100, 100, 50, p[0]);
 
 KURALLAR:
 - En üste süre yaz: @5s (max @60s)
 - Çoklu sahne için --- satırı ile böl
-- " Renkleri hex ('#ff6b35') yaz
+- Renkleri hex ('#ff6b35') yaz
 - Metin ortalamak için x = W/2, y = H/2
 
 ÖRNEK 1 - Basit:
@@ -206,13 +227,21 @@ gradient('#0a0a1a', '#1a0033', 'dikey');
 const x = 100 + t * (W - 200);
 daire(x, H/2, 50, '#ff6b35');
 
-ÖRNEK 2 - Müzikli:
+ÖRNEK 2 - Müzikli (piyano):
 @6s
 gradient('#0a0a1a', '#1a0033', 'dikey');
-muzik('do mi sol do2', 120, true);
+piyano('do mi sol do2', 120, true);
 const s = 1 + Math.sin(t * Math.PI * 4) * 0.1;
 yildiz(W/2, H/2, 150 * s, 5, '#00d9ff');
 yazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');
+
+ÖRNEK 3 - Rock gitar:
+@6s
+gradient('#1a0000', '#330000', 'dikey');
+gitar('mi mi sol la si la sol', 140, true);
+const s = 1 + Math.sin(t * Math.PI * 8) * 0.15;
+yildizPatlamasi(W/2, H/2, 200 * s, '#ff4500');
+yazi('ROCK!', W/2, H - 120, 90, '#fff');
 
 Şimdi benim için şu videoyu yap: [ISTEGINI YAZ]</pre>
       </div>
@@ -222,6 +251,6 @@ yazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');
     </div>
   </div>
 
-  <script src="app.js?v=31"></script>
+  <script src="app.js?v=32"></script>
 </body>
 </html>
