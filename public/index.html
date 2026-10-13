@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo</title>
-  <link rel="stylesheet" href="style.css?v=33" />
+  <link rel="stylesheet" href="style.css?v=34" />
 </head>
 <body>
   <header>
@@ -59,8 +59,9 @@
             <code>titre</code><br />
             <b>Palet:</b> <code>renk("neon")</code><br />
             <b>Çoklu sahne:</b> <code>---</code> ile böl<br />
-            <b style="color:#f59e0b">🎵 Müzik sadece Chrome / Edge / Firefox/HereEmu'da çalışır.</b><br />
-            <b style="color:#ef4444">⚠️ Seslendirme (seslendir) henüz çalışmıyor.</b>
+            <b style="color:#f59e0b">🎵 Müzik sadece Chrome / Edge / Firefox'ta çalışır.</b><br />
+            <b style="color:#ef4444">⚠️ Seslendirme (seslendir) henüz çalışmıyor.</b><br />
+            <b style="color:#8a63ff">🤖 Sağ üstteki "AI Asistanı Aç" ile yapay zekadan kod isteyebilirsin.</b>
           </small>
         </div>
       </div>
@@ -103,6 +104,10 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
     </section>
   </main>
 
+  <div class="ai-trigger-bar">
+    <button id="aiOpenBtn" class="ai-open-btn">🤖 AI Asistanı Aç (OsHere AI)</button>
+  </div>
+
   <div class="toast" id="toast">
     <span id="toastMsg">Temizlendi</span>
     <button id="toastUndo" class="toast-undo">↩️ Geri Al</button>
@@ -115,7 +120,7 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
         <button class="modal-close" id="modalClose">✕</button>
       </div>
       <p class="modal-desc">
-        Aşağıdaki metni <b>kopyala</b> ve <b>ChatGPT / Claude / Gemini</b>'ye yapıştır.
+        Aşağıdaki metni <b>kopyala</b> ve <b>ChatGPT / Claude / Gemini / OsHere AI</b>'ye yapıştır.
         Sonunda <code>[ISTEGINI YAZ]</code> kısmına ne istediğini yaz.
       </p>
       <div class="modal-code-wrap">
@@ -125,8 +130,8 @@ Site: https://oscodevideo.onrender.com
 
 ⚠️ ÖNEMLİ UYARILAR:
 1) Müzik (muzik, piyano, gitar, org, bas) SADECE Chrome / Edge / 
-   Firefox / HereEmu gibi tarayıcılarda videoya gömülür. Safari (iPhone/iPad/Mac) 
-   üzerinde müzik videoya kaydedilmez, sessiz çıkar.
+   Firefox/HereEmu gibi tarayıcılarda videoya gömülür (onlarda bile olmazsa sayfayı yenile.
+  Safari (iPhone/iPad/Mac) üzerinde müzik videoya kaydedilmez, sessiz çıkar.
 2) Seslendirme (seslendir) ŞU AN ÇALIŞMIYOR. Kullanma.
 
 DEĞİŞKENLER:
@@ -158,7 +163,7 @@ MEDYA:
 - emoji("🚀", x, y, boyut)
 - resim(url, x, y, w, h) - URL CORS desteklemeli
 
-MÜZİK (Chrome/Edge/Firefox/HereEmu):
+MÜZİK (Chrome/Edge/Firefox):
 - muzik("do re mi", 120, true)    - normal (piyano)
 - piyano("do re mi", 120, true)   - yumuşak ses
 - gitar("do re mi", 120, true)    - keskin, tel sesi
@@ -223,6 +228,9 @@ KURALLAR:
 - Çoklu sahne için --- satırı ile böl
 - Renkleri hex ('#ff6b35') yaz
 - Metin ortalamak için x = W/2, y = H/2
+- MÜZİK ÇALIŞMAZSA SİL: Kullanıcı "müzik çalışmıyor / hata veriyor / ses 
+  gelmiyor" derse, koddaki TÜM müzik satırlarını (muzik, piyano, gitar, 
+  org, bas, muzikSesi) SİL. Sadece görsel animasyon kalsın.
 
 ÖRNEK 1 - Basit:
 @5s
@@ -254,6 +262,15 @@ yazi('ROCK!', W/2, H - 120, 90, '#fff');
     </div>
   </div>
 
-  <script src="app.js?v=33"></script>
+  <!-- AI ASISTAN IFRAME -->
+  <div class="ai-overlay" id="aiOverlay">
+    <div class="ai-header">
+      <div class="ai-title">🤖 OsHere AI Asistanı</div>
+      <button id="aiCloseBtn" class="ai-close-btn">← Geri Dön</button>
+    </div>
+    <iframe id="aiFrame" class="ai-frame" src="about:blank" allow="microphone; clipboard-write"></iframe>
+  </div>
+
+  <script src="app.js?v=34"></script>
 </body>
 </html>
