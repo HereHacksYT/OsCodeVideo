@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo</title>
-  <link rel="stylesheet" href="style.css?v=34" />
+  <link rel="stylesheet" href="style.css?v=35" />
 </head>
 <body>
   <header>
@@ -61,7 +61,7 @@
             <b>Çoklu sahne:</b> <code>---</code> ile böl<br />
             <b style="color:#f59e0b">🎵 Müzik sadece Chrome / Edge / Firefox'ta çalışır.</b><br />
             <b style="color:#ef4444">⚠️ Seslendirme (seslendir) henüz çalışmıyor.</b><br />
-            <b style="color:#8a63ff">🤖 Sağ üstteki "AI Asistanı Aç" ile yapay zekadan kod isteyebilirsin.</b>
+            <b style="color:#8a63ff">🤖 Editörün altındaki "OsHere AI" ile yapay zekadan kod isteyebilirsin.</b>
           </small>
         </div>
       </div>
@@ -92,6 +92,7 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
         <div class="action-buttons">
           <button id="paylasBtn" class="ghost paylas">🔗 Paylaş</button>
           <button id="clearBtn" class="ghost">🗑️ Temizle</button>
+          <button id="aiOpenBtn" class="ghost ai-btn">🤖 OsHere AI</button>
           <button id="howBtn" class="ghost how">❓ Nasıl yapılır?</button>
           <button id="cancelBtn" class="ghost danger" hidden>🛑 Durdur</button>
           <button id="generateBtn" class="primary">⚡ Videoyu Oluştur</button>
@@ -103,10 +104,6 @@ daire(x, H/2, 50, '#ff6b35');</textarea>
       <a id="downloadBtn" class="primary download" download>⬇️ Videoyu İndir</a>
     </section>
   </main>
-
-  <div class="ai-trigger-bar">
-    <button id="aiOpenBtn" class="ai-open-btn">🤖 AI Asistanı Aç (OsHere AI)</button>
-  </div>
 
   <div class="toast" id="toast">
     <span id="toastMsg">Temizlendi</span>
@@ -262,15 +259,17 @@ yazi('ROCK!', W/2, H - 120, 90, '#fff');
     </div>
   </div>
 
-  <!-- AI ASISTAN IFRAME -->
+  <!-- AI ASISTAN MODAL -->
   <div class="ai-overlay" id="aiOverlay">
-    <div class="ai-header">
-      <div class="ai-title">🤖 OsHere AI Asistanı</div>
-      <button id="aiCloseBtn" class="ai-close-btn">← Geri Dön</button>
+    <div class="ai-modal">
+      <div class="ai-header">
+        <div class="ai-title">🤖 OsHere AI Asistanı</div>
+        <button id="aiCloseBtn" class="ai-close-btn" aria-label="Kapat">✕</button>
+      </div>
+      <iframe id="aiFrame" class="ai-frame" src="about:blank" allow="microphone; clipboard-write"></iframe>
     </div>
-    <iframe id="aiFrame" class="ai-frame" src="about:blank" allow="microphone; clipboard-write"></iframe>
   </div>
 
-  <script src="app.js?v=34"></script>
+  <script src="app.js?v=35"></script>
 </body>
 </html>
