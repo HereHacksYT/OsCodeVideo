@@ -198,9 +198,9 @@
     "@2s\narkaplan('#0a0a1a');\nsimsek(200, 100, W - 200, H - 100, '#fff200', 6);\nyildizPatlamasi(W/2, H/2, 100, '#fff');",
     "@5s\narkaplan('#0f1117');\nconst b = Math.min(W, H) * 0.55;\nresim('https://i.ibb.co/JjPFLbcP/Os-Code-Video.png', W/2 - b/2, H/2 - b/2, b, b);",
     "@2s\ngradient('#ff6b35', '#ffd23f', 'dikey');\nyazi('Merhaba!', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#6c8cff', '#a200ff', 'dikey');\nyazi('OsCodeVideo', W/2, H/2, 90, '#fff');\n---\n@2s\ngradient('#22c55e', '#16a34a', 'dikey');\nyazi('Hos geldin!', W/2, H/2, 90, '#fff');",
-    "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d)9ff');",
-    "@6s\ngradient('#0a0a1a', '#1 *a0033', 'dikey');\npiyano('do mi sol do 2', 120, true);0\nconst s = 1 + Math.sin(t *. Math.PI * 4) * 0.1;\nyildiz(W/2, H15/2, 150 * s, 5, '#00d9ff');\nyazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');",
-    "@6s\ngradient('#1a0000', '#330000', 'dikey');\ngitar('mi mi sol la si la sol', 140, true);\nconst s = 1 + Math.sin(t * Math.PI * 8;\nyildizPatlamasi(W/2, H/2, 200 * s, '#ff4500');\nyazi('ROCK!', W/2, H - 120, 90, '#fff');"
+    "@4s\ngradient('#0a0a1a', '#1a0033', 'capraz');\ndaktilo('OsCodeVideo', W/2, H/2, 80, '#00d9ff');",
+    "@6s\ngradient('#0a0a1a', '#1a0033', 'dikey');\npiyano('do mi sol do2', 120, true);\nconst s = 1 + Math.sin(t * Math.PI * 4) * 0.1;\nyildiz(W/2, H/2, 150 * s, 5, '#00d9ff');\nyazi('OsCodeVideo', W/2, H - 100, 60, '#00d9ff');",
+    "@6s\ngradient('#1a0000', '#330000', 'dikey');\ngitar('mi mi sol la si la sol', 140, true);\nconst s = 1 + Math.sin(t * Math.PI * 8) * 0.15;\nyildizPatlamasi(W/2, H/2, 200 * s, '#ff4500');\nyazi('ROCK!', W/2, H - 120, 90, '#fff');"
   ];
 
   for (var ofx = 0; ofx < ORNEKLER.length; ofx++) {
@@ -388,8 +388,8 @@
     var parseEdilmis = [];
     var toplamSure = 0;
 
-    for (var i = 0; i < tokens.length; i++) {
-      var tok = tokens[i];
+    for (var idx = 0; idx < tokens.length; idx++) {
+      var tok = tokens[idx];
       var carpan = 1;
       var notAdi = tok;
 
@@ -432,19 +432,19 @@
       };
     }
 
-    var t = baslangic;
-    for (var i = 0; i < parseEdilmis.length; i++) {
-      tekNota(parseEdilmis[i], t);
-      t += parseEdilmis[i].sure;
+    var zaman = baslangic;
+    for (var kk = 0; kk < parseEdilmis.length; kk++) {
+      tekNota(parseEdilmis[kk], zaman);
+      zaman += parseEdilmis[kk].sure;
     }
 
     if (dongu) {
-      for (var k = 1; k < 12; k++) {
-        var ek = baslangic + k * toplamSure;
-        var tt = ek;
+      for (var d = 1; d < 12; d++) {
+        var ek = baslangic + d * toplamSure;
+        var zaman2 = ek;
         for (var m = 0; m < parseEdilmis.length; m++) {
-          tekNota(parseEdilmis[m], tt);
-          tt += parseEdilmis[m].sure;
+          tekNota(parseEdilmis[m], zaman2);
+          zaman2 += parseEdilmis[m].sure;
         }
       }
     }
@@ -681,15 +681,15 @@
           var r = Math.abs(Math.sin(seed * 2) * 43758.5453 % 1) * 120;
           var px = x + Math.cos(a) * r;
           var py = y + Math.sin(a) * r;
-         ~ var b = Math.abs(Math.sin(seed * 3) * 43758.5453 % 1) * boyut + 1;
-          ctx.beginPath(); ctx".arc(px, py, b, 0, Math.PI * 2); ctx.fill();
+          var b = Math.abs(Math.sin(seed * 3) * 43758.5453 % 1) * boyut + 1;
+          ctx.beginPath(); ctx.arc(px, py, b, 0, Math.PI * 2); ctx.fill();
         }
       },
       renk: function (isim) {
-        + var paletler = {
-          neon: ["#00fff0", "#ff00e6", "#a200ff", "#00ff k89", "#fff200"],
-          gunbatimi: ["#ff6b35", "#f7931e", "#ffd23f", "#eealan4266", "#3d1e6d"],
-          okyanus: ["#001f3f", "#0074d9 +", "#39cccc", "#7fdbff", "#b5e7ff"],
+        var paletler = {
+          neon: ["#00fff0", "#ff00e6", "#a200ff", "#00ff89", "#fff200"],
+          gunbatimi: ["#ff6b35", "#f7931e", "#ffd23f", "#ee4266", "#3d1e6d"],
+          okyanus: ["#001f3f", "#0074d9", "#39cccc", "#7fdbff", "#b5e7ff"],
           ates: ["#ff0000", "#ff4500", "#ff6b35", "#ffa500", "#ffd700"],
           orman: ["#1b4332", "#2d6a4f", "#40916c", "#52b788", "#95d5b2"],
           pastel: ["#ffd6e0", "#ffefcf", "#d4f1f4", "#e0d4f4", "#d4f4e4"],
@@ -994,16 +994,16 @@
       var elapsed = performance.now() - startTime;
       var globalT = Math.min(1, elapsed / toplamMs);
       var hs = hangiSahne(elapsed);
-      state.t = Math.max(0, Math.min(1, " hs.localT));
+      state.t = Math.max(0, Math.min(1, hs.localT));
 
       ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
       try {
-        derlenmis[hs.idx sn].fn(ctx, state.t, frameNo++, derlenmis[hs.idx].duration, W, H, helpers);
+        derlenmis[hs.idx].fn(ctx, state.t, frameNo++, derlenmis[hs.idx].duration, W, H, helpers);
       } catch (e) {
-       )</ try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
-        updateMessage(m3, "Sahne " + (hs.idx +small 1) + " hatasi: " + escapeHtml(e.message), "err");
+        try { if (rec.state !== "inactive") rec.stop(); } catch (x) {}
+        updateMessage(m3, "Sahne " + (hs.idx + 1) + " hatasi: " + escapeHtml(e.message), "err");
         uretimBitti(); progressBar.hidden = true; return;
->"      }
+      }
       watermarkCiz(elapsed, toplamMs);
 
       var pct = Math.round(globalT * 100);
@@ -1011,7 +1011,7 @@
       if (miniFill) miniFill.style.width = pct + "%";
       var kalan = Math.max(0, Math.ceil(analiz.toplamSure - elapsed / 1000));
       updateMessage(m3,
-        "Animasyon %" + pct + " <small>( +
+        "Animasyon %" + pct + " <small>(~" + kalan + " sn)</small>" +
         '<div class="mini-bar"><div style="width:' + pct + '%"></div></div>'
       );
       generateBtn.textContent = "Uretiliyor... %" + pct;
@@ -1076,5 +1076,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("OsCodeVideo hazir v32");
+  console.log("OsCodeVideo hazir v33");
 })();
