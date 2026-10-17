@@ -1107,5 +1107,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("OsCodeVideo hazir v36");
+  console.log("OsCodeVideo hazir v37");
 })();
