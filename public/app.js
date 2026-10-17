@@ -32,7 +32,7 @@
   var howBtn       = $("howBtn");
   var cancelBtn    = $("cancelBtn");
   var paylasBtn    = $("paylasBtn");
-  var themeBtn     = $("themeBtn");
+  var themeSwitch  = $("switch"); // Yeni switch butonu
   var canvas       = $("renderCanvas");
   var previewVideo = $("previewVideo");
   var resultSec    = $("resultSection");
@@ -57,19 +57,19 @@
 
   var ctx = canvas ? canvas.getContext("2d") : null;
 
+  // ==================== TEMA (SWITCH UYUMLU) ====================
   function temaUygula(t) {
     document.documentElement.setAttribute("data-theme", t);
-    if (themeBtn) themeBtn.textContent = t === "light" ? "☀️" : "🌙";
+    if (themeSwitch) themeSwitch.checked = (t === "light");
   }
   function temaYukle() {
     var t = "dark";
     try { t = localStorage.getItem(LS_TEMA) || "dark"; } catch (e) {}
     temaUygula(t);
   }
-  if (themeBtn) {
-    themeBtn.addEventListener("click", function () {
-      var cur = document.documentElement.getAttribute("data-theme") || "dark";
-      var yeni = cur === "dark" ? "light" : "dark";
+  if (themeSwitch) {
+    themeSwitch.addEventListener("change", function () {
+      var yeni = themeSwitch.checked ? "light" : "dark";
       temaUygula(yeni);
       try { localStorage.setItem(LS_TEMA, yeni); } catch (e) {}
     });
@@ -1107,5 +1107,5 @@
   kodYukle();
   sureGuncelle();
 
-  console.log("OsCodeVideo hazir v34");
+  console.log("OsCodeVideo hazir v36");
 })();
