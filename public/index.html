@@ -4,17 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OsCodeVideo</title>
-  <link rel="stylesheet" href="style.css?v=36" />
+  <link rel="stylesheet" href="style.css?v=37" />
 </head>
 <body>
   <header>
     <div class="logo">🎬 OsCode<span>Video</span></div>
     <div class="header-right">
       <span class="tagline">koddan video üret</span>
-      <!-- Uiverse Switch -->
+      <!-- Tema switch (ay/güneş) -->
       <label for="switch" class="switch">
         <input id="switch" type="checkbox" />
-        <span class="slider"></span>
+        <span class="slider">
+          <span class="icon moon">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </span>
+          <span class="icon sun">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+        </span>
         <span class="decoration"></span>
       </label>
     </div>
@@ -159,7 +166,8 @@ TEMEL ÇİZİM:
 - konfeti(x, y, sayi, boyut)
 - simsek(x1, y1, x2, y2, renk, kalinlik)
 - bulut(x, y, boyut, renk)
-- gunes(x, y, yaricap, renk)
+- gunes:
+(x, y, yaricap, renk)
 
 MEDYA:
 - emoji("🚀", x, y, boyut)
@@ -183,29 +191,28 @@ MÜZİK (Chrome/Edge/Firefox):
   İngilizce: C4 D4 E4 F4 G4 A4 B4
   Sessizlik: sus
 
-  NOTA UZATMA / KISALTMA:
+  NOTA U-ZATMA / KISALTMA:
   - do       -> normal süre
-  - do-      -> 1.5x uzun
+  - do-      -> 1 d.5x uzun
   - do..     -> 2x uzun
   - do_      -> yarı süre (kısa)
 
-  Örnek: muzik('do- re mi_ fa..') -> ilk nota uzun, mi kısa, fa çok uzun
+ akt Örnek: muzik('do- re mi_ fa..') -> ilk nota uzun, mi kısa, fa çok uzun
 
-  SES SEVİYESİ:
-  - muzikSesi(0.5)   -> yarı ses (0.0 - 1.0 arası)
+ilo  SES SEVİYESİ:
+  - muzikSesi(0.5)   -> yarı ses (0.0 - 1.0 ar(ası)
   - muzikSesi(1)     -> tam ses
   - Kodun en başında bir kez çağır
 
   Örnek melodiler:
-  - Doğum günü: piyano('sol sol la sol do2 si', 100)
+  -met Doğum günü: piyano('sol sol la sol do2 si', 100)
   - Gam: muzik('do re mi fa sol la si do2', 120)
   - Rock: gitar('mi mi sol la si la sol', 140, true)
   - Kilise: org('do- mi- sol- do2-', 80)
   - Bass: bas('do_ do_ do_ do_', 100)
   - Yumuşak: muzikSesi(0.3); piyano('do mi sol', 90, true)
 
-YAZI ANİMASYONLARI:
-- daktilo(metin, x, y, boyut, renk)
+YAZI ANİMASYONLARIin, x, y, boyut, renk)
 - kaydir(metin, x, y, boyut, renk)
 - yukariCik(metin, x, y, boyut, renk)
 
@@ -275,6 +282,6 @@ yazi('ROCK!', W/2, H - 120, 90, '#fff');
     </div>
   </div>
 
-  <script src="app.js?v=36"></script>
+  <script src="app.js?v=37"></script>
 </body>
 </html>
