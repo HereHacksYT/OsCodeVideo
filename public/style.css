@@ -1,5 +1,5 @@
 /* ============================================================
-   OsCodeVideo — style.css (tam, v35)
+   OsCodeVideo — style.css (tam, v36)
    ============================================================ */
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -38,14 +38,63 @@ header {
 .header-right { display:flex; align-items:center; gap:12px; }
 .tagline { color:var(--muted); font-size:13px; }
 
-.icon-btn {
-  background: var(--panel); border: 1px solid var(--border);
-  color: var(--text); width: 36px; height: 36px;
-  border-radius: 10px; cursor: pointer; font-size: 16px;
-  display: grid; place-items: center; transition: all .15s;
-  padding: 0; font-family: inherit;
+/* ==================== Tema Switch ==================== */
+.switch {
+  font-size: 16px;
+  position: relative;
+  display: inline-block;
+  width: 3.5em;
+  height: 2em;
+  cursor: pointer;
 }
-.icon-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--panel-2);
+  border: 1px solid var(--border);
+  transition: .3s;
+  border-radius: 30px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 1.4em;
+  width: 1.4em;
+  border-radius: 50%;
+  left: 0.2em;
+  bottom: 0.2em;
+  background-color: #fff;
+  transition: .3s;
+  box-shadow: 0 2px 4px rgba(0,0,0,.3);
+}
+.switch input:checked + .slider {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+.switch input:checked + .slider:before {
+  transform: translateX(1.5em);
+}
+.switch .decoration {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.5em;
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1;
+}
+.switch .decoration:before { content: "🌙"; }
+.switch .decoration:after { content: "☀️"; }
+html[data-theme="light"] .switch .decoration { color: rgba(0,0,0,0.4); }
 
 /* ==================== Main ==================== */
 main {
